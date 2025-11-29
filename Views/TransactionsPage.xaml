@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ExpenseTracker.Views.TransactionsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Grid>
+        <CollectionView ItemsSource="{Binding Transactions}"
+                        Margin="16"
+                        SelectionMode="Single"
+                        SelectionChanged="OnSelectionChanged">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <SwipeView>
+                        <SwipeView.RightItems>
+                            <SwipeItems Mode="Reveal">
+                                <SwipeItem Text="Delete"
+                                           BackgroundColor="Red"
+                                           Invoked="OnDeleteSwipeInvoked" />
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+
+                        <Border StrokeShape="RoundRectangle 12"
+                                Padding="12"
+                                Margin="0,4">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  RowDefinitions="Auto,Auto">
+                                <Label Grid.Row="0"
+                                       Grid.Column="0"
+                                       Text="{Binding Note}"
+                                       FontAttributes="Bold" />
+                                <Label Grid.Row="1"
+                                       Grid.Column="0"
+                                       Text="{Binding Date, StringFormat='{0:yyyy-MM-dd}'}"
+                                       FontSize="12"
+                                       TextColor="Gray" />
+                                <Label Grid.RowSpan="2"
+                                       Grid.Column="1"
+                                       VerticalOptions="Center"
+                                       Text="{Binding Amount, StringFormat='${0:F2}'}"
+                                       FontAttributes="Bold" />
+                            </Grid>
+                        </Border>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Text="+"
+                WidthRequest="56"
+                HeightRequest="56"
+                CornerRadius="28"
+                FontSize="24"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="24"
+                Clicked="OnAddClicked" />
+    </Grid>
+</ContentPage>
