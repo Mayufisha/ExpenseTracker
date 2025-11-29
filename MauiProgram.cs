@@ -19,25 +19,22 @@ public static class MauiProgram
             });
 
         var dbPath = Path.Combine(FileSystem.AppDataDirectory, "expenses.db3");
-        builder.Services.AddSingleton<IExpenseService>(_ => new SQLiteExpenseService(dbPath));
-
-        builder.Services.AddSingleton<DashboardViewModel>();
-        builder.Services.AddSingleton<TransactionsViewModel>();
-
-        builder.Services.AddSingleton<DashboardPage>();
-        builder.Services.AddSingleton<TransactionsPage>();
-        builder.Services.AddSingleton<SettingsPage>();
-        builder.Services.AddTransient<AddEditTransactionPage>();
 
         builder.Services.AddSingleton<IExpenseService>(_ => new SQLiteExpenseService(dbPath));
         builder.Services.AddSingleton<IGoalService>(_ => new SQLiteGoalService(dbPath));
+        builder.Services.AddSingleton<IScheduleService>(_ => new SQLiteScheduleService(dbPath));
 
+        builder.Services.AddSingleton<DashboardViewModel>();
+        builder.Services.AddSingleton<TransactionsViewModel>();
         builder.Services.AddSingleton<GoalsViewModel>();
-        builder.Services.AddSingleton<GoalsPage>();
-
         builder.Services.AddSingleton<ScheduleViewModel>();
-        builder.Services.AddSingleton<SchedulePage>();
 
+        builder.Services.AddSingleton<DashboardPage>();
+        builder.Services.AddSingleton<TransactionsPage>();
+        builder.Services.AddSingleton<GoalsPage>();
+        builder.Services.AddSingleton<SchedulePage>();
+        builder.Services.AddSingleton<SettingsPage>();
+        builder.Services.AddTransient<AddEditTransactionPage>();
 
         return builder.Build();
     }

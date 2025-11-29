@@ -50,10 +50,12 @@ public class SQLiteGoalService : IGoalService
     public async Task<IReadOnlyList<Goal>> GetGoalsAsync()
     {
         await InitAsync();
-        return await _db.Table<Goal>()
-                        .OrderBy(g => g.Deadline ?? DateTime.MaxValue)
-                        .ToListAsync();
+        var items = await _db.Table<Goal>().ToListAsync();
+        return items
+            .OrderBy(g => g.Deadline ?? DateTime.MaxValue)
+            .ToList();
     }
+
 
     public async Task AddOrUpdateGoalAsync(Goal goal)
     {

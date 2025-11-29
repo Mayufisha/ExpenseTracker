@@ -20,7 +20,6 @@
                                     <SwipeItems Mode="Reveal">
                                         <SwipeItem Text="Delete"
                                                    BackgroundColor="Red"
-                                                   TextColor="White"
                                                    Invoked="OnDeleteSwipeInvoked" />
                                     </SwipeItems>
                                 </SwipeView.RightItems>

@@ -16,8 +16,14 @@ public partial class SchedulePage : ContentPage
 
     protected override async void OnAppearing()
     {
-        base.OnAppearing();
-        await _viewModel.LoadAsync();
+        base.OnAppearing(); try
+        {
+            await _viewModel.LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Schedule error", ex.Message, "OK");
+        }
     }
 
     async void OnAddClicked(object sender, EventArgs e)

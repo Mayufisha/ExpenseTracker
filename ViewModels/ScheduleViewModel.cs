@@ -1,72 +1,51 @@
-﻿using ExpenseTracker.Models;
-using SQLite;
+﻿using System.Collections.ObjectModel;
+using ExpenseTracker.Models;
+using ExpenseTracker.Services;
 
-namespace ExpenseTracker.Services;
+namespace ExpenseTracker.ViewModels;
 
-public class SQLiteScheduleService : IScheduleService
+public class ScheduleViewModel : BaseViewModel
 {
-    private readonly SQLiteAsyncConnection _db;
-    private bool _initialized;
+    private readonly IScheduleService _scheduleService;
 
-    public SQLiteScheduleService(string databasePath)
+    public ObservableCollection<ScheduledTransaction> ScheduledItems { get; } = new();
+
+    public ScheduleViewModel(IScheduleService scheduleService)
     {
-        _db = new SQLiteAsyncConnection(databasePath);
+        _scheduleService = scheduleService;
     }
 
-    async Task InitAsync()
+    public async Task LoadAsync()
     {
-        if (_initialized) return;
+        if (IsBusy) return;
+        IsBusy = true;
 
-        await _db.CreateTableAsync<ScheduledTransaction>();
+        ScheduledItems.Clear();
+        var items = await _scheduleService.GetScheduledAsync();
+        foreach (var s in items)
+            ScheduledItems.Add(s);
 
-        var count = await _db.Table<ScheduledTransaction>().CountAsync();
-        if (count == 0)
+        IsBusy = false;
+    }
+
+    public async Task AddSimpleScheduleAsync(string note, decimal amount, DateTime date)
+    {
+        var item = new ScheduledTransaction
         {
-            var seed = new[]
-            {
-                new ScheduledTransaction
-                {
-                    Note = "Rent",
-                    Amount = 1000,
-                    IsIncome = false,
-                    ScheduledDate = DateTime.Today.AddDays(7),
-                    Frequency = "Monthly"
-                },
-                new ScheduledTransaction
-                {
-                    Note = "Gym membership",
-                    Amount = 40,
-                    IsIncome = false,
-                    ScheduledDate = DateTime.Today.AddDays(3),
-                    Frequency = "Monthly"
-                }
-            };
-            await _db.InsertAllAsync(seed);
-        }
+            Note = note,
+            Amount = amount,
+            ScheduledDate = date,
+            IsIncome = false
+        };
 
-        _initialized = true;
+        await _scheduleService.AddOrUpdateAsync(item);
+        await LoadAsync();
     }
 
-    public async Task<IReadOnlyList<ScheduledTransaction>> GetScheduledAsync()
+    public async Task DeleteAsync(ScheduledTransaction item)
     {
-        await InitAsync();
-        return await _db.Table<ScheduledTransaction>()
-                        .OrderBy(s => s.ScheduledDate)
-                        .ToListAsync();
-    }
-
-    public async Task AddOrUpdateAsync(ScheduledTransaction scheduled)
-    {
-        await InitAsync();
-        if (scheduled.Id == 0)
-            await _db.InsertAsync(scheduled);
-        else
-            await _db.UpdateAsync(scheduled);
-    }
-
-    public async Task DeleteAsync(int id)
-    {
-        await InitAsync();
-        await _db.DeleteAsync<ScheduledTransaction>(id);
+        if (item == null) return;
+        await _scheduleService.DeleteAsync(item.Id);
+        await LoadAsync();
     }
 }

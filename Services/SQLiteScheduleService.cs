@@ -13,7 +13,7 @@ public class SQLiteScheduleService : IScheduleService
         _db = new SQLiteAsyncConnection(databasePath);
     }
 
-    async Task InitAsync()
+    private async Task InitAsync()
     {
         if (_initialized) return;
 
@@ -41,6 +41,7 @@ public class SQLiteScheduleService : IScheduleService
                     Frequency = "Monthly"
                 }
             };
+
             await _db.InsertAllAsync(seed);
         }
 
@@ -58,6 +59,7 @@ public class SQLiteScheduleService : IScheduleService
     public async Task AddOrUpdateAsync(ScheduledTransaction scheduled)
     {
         await InitAsync();
+
         if (scheduled.Id == 0)
             await _db.InsertAsync(scheduled);
         else
