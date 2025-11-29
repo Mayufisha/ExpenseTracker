@@ -27,4 +27,25 @@ public class GoalsViewModel : BaseViewModel
 
         IsBusy = false;
     }
+
+    public async Task AddSimpleGoalAsync(string name, decimal target)
+    {
+        var goal = new Goal
+        {
+            Name = name,
+            TargetAmount = target,
+            CurrentAmount = 0,
+            IsCompleted = false
+        };
+
+        await _goalService.AddOrUpdateGoalAsync(goal);
+        await LoadAsync();
+    }
+
+    public async Task DeleteGoalAsync(Goal goal)
+    {
+        if (goal == null) return;
+        await _goalService.DeleteGoalAsync(goal.Id);
+        await LoadAsync();
+    }
 }

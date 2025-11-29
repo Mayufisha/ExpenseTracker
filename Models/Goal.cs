@@ -12,4 +12,8 @@ public class Goal
     public decimal CurrentAmount { get; set; }              
     public DateTime? Deadline { get; set; }                
     public bool IsCompleted { get; set; }
+
+    [Ignore]
+    public double Progress =>
+       TargetAmount <= 0 ? 0 : Math.Clamp((double)(CurrentAmount / TargetAmount), 0, 1);
 }
