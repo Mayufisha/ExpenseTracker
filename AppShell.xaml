@@ -12,6 +12,12 @@
         <ShellContent
             Title="Transactions"
             ContentTemplate="{DataTemplate views:TransactionsPage}" />
+         <ShellContent
+             Title="Goals"
+                ContentTemplate="{DataTemplate views:GoalsPage}" />
+        <ShellContent
+            Title="Schedule"
+            ContentTemplate="{DataTemplate views:SchedulePage}" />
         <ShellContent
             Title="Settings"
             ContentTemplate="{DataTemplate views:SettingsPage}" />

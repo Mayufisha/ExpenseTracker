@@ -29,6 +29,16 @@ public static class MauiProgram
         builder.Services.AddSingleton<SettingsPage>();
         builder.Services.AddTransient<AddEditTransactionPage>();
 
+        builder.Services.AddSingleton<IExpenseService>(_ => new SQLiteExpenseService(dbPath));
+        builder.Services.AddSingleton<IGoalService>(_ => new SQLiteGoalService(dbPath));
+
+        builder.Services.AddSingleton<GoalsViewModel>();
+        builder.Services.AddSingleton<GoalsPage>();
+
+        builder.Services.AddSingleton<ScheduleViewModel>();
+        builder.Services.AddSingleton<SchedulePage>();
+
+
         return builder.Build();
     }
 }

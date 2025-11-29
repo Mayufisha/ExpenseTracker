@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ExpenseTracker.Views.GoalsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="16">
+            <Label Text="Goals & Achievements"
+                   FontSize="28"
+                   FontAttributes="Bold" />
+
+            <CollectionView ItemsSource="{Binding Goals}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border StrokeShape="RoundRectangle 16"
+                                Padding="12"
+                                Margin="0,4">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding Name}"
+                                       FontAttributes="Bold" />
+                                <Label Text="{Binding TargetAmount, StringFormat='Target: ${0:F2}'}"
+                                       FontSize="12"
+                                       TextColor="Gray" />
+                                <ProgressBar
+                                    Progress="{Binding CurrentAmount, Converter={StaticResource GoalProgressConverter}, ConverterParameter={Binding TargetAmount}}" />
+                                <Label Text="{Binding CurrentAmount, StringFormat='Saved: ${0:F2}'}"
+                                       FontSize="12" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
