@@ -6,7 +6,7 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="16">
-            <Label Text="Goals & Achievements"
+            <Label Text="Goals &amp; Achievements"
                    FontSize="28"
                    FontAttributes="Bold" />
 
