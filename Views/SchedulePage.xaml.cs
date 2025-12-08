@@ -1,5 +1,7 @@
-﻿using ExpenseTracker.Models;
+﻿using System;
+using ExpenseTracker.Models;
 using ExpenseTracker.ViewModels;
+using Microsoft.Maui.Controls;
 
 namespace ExpenseTracker.Views;
 
@@ -16,7 +18,9 @@ public partial class SchedulePage : ContentPage
 
     protected override async void OnAppearing()
     {
-        base.OnAppearing(); try
+        base.OnAppearing();
+
+        try
         {
             await _viewModel.LoadAsync();
         }
@@ -62,5 +66,19 @@ public partial class SchedulePage : ContentPage
         if (!confirm) return;
 
         await _viewModel.DeleteAsync(item);
+    }
+
+    void OnFilterChanged(object sender, EventArgs e)
+    {
+        if (sender is not Picker picker) return;
+
+        _viewModel.SelectedRange = picker.SelectedIndex switch
+        {
+            1 => TimeRange.ThisWeek,
+            2 => TimeRange.ThisMonth,
+            3 => TimeRange.LastMonth,
+            4 => TimeRange.LastThreeMonths,
+            _ => TimeRange.All
+        };
     }
 }

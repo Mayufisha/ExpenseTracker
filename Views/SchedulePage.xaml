@@ -5,45 +5,78 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <Grid>
-        <ScrollView>
-            <VerticalStackLayout Padding="16" Spacing="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
-                <Label Text="Schedule"
-                       FontSize="28"
-                       FontAttributes="Bold" />
+        <HorizontalStackLayout Grid.Row="0"
+                               Padding="16,8"
+                               Spacing="8">
+            <Label Text="Filter:"
+                   VerticalOptions="Center" />
 
-                <CollectionView ItemsSource="{Binding ScheduledItems}">
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate>
-                            <SwipeView>
-                                <SwipeView.RightItems>
-                                    <SwipeItems Mode="Reveal">
-                                        <SwipeItem Text="Delete"
-                                                   BackgroundColor="Red"
-                                                   Invoked="OnDeleteSwipeInvoked" />
-                                    </SwipeItems>
-                                </SwipeView.RightItems>
+            <Picker SelectedIndexChanged="OnFilterChanged"
+                    HorizontalOptions="Fill">
+                <Picker.Items>
+                    <x:String>All</x:String>
+                    <x:String>This week</x:String>
+                    <x:String>This month</x:String>
+                    <x:String>Last month</x:String>
+                    <x:String>Last 3 months</x:String>
+                </Picker.Items>
+            </Picker>
+        </HorizontalStackLayout>
 
-                                <Border StrokeShape="RoundRectangle 16"
-                                        Padding="12"
-                                        Margin="0,4">
-                                    <VerticalStackLayout Spacing="4">
-                                        <Label Text="{Binding Note}"
-                                               FontAttributes="Bold" />
-                                        <Label Text="{Binding ScheduledDate, StringFormat='Due: {0:yyyy-MM-dd}'}"
-                                               FontSize="12"
-                                               TextColor="Gray" />
-                                        <Label Text="{Binding Amount, StringFormat='Amount: ${0:F2}'}"
-                                               FontSize="12" />
-                                    </VerticalStackLayout>
-                                </Border>
-                            </SwipeView>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding ScheduledItems}"
+                        Margin="16"
+                        SelectionMode="None">
 
-            </VerticalStackLayout>
-        </ScrollView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+
+                    <SwipeView>
+                        <SwipeView.RightItems>
+                            <SwipeItems Mode="Reveal">
+                                <SwipeItem Text="Delete"
+                                           BackgroundColor="Red"
+                                           Invoked="OnDeleteSwipeInvoked" />
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+
+                        <Border StrokeShape="RoundRectangle 12"
+                                Padding="12"
+                                Margin="0,4">
+
+                            <Grid ColumnDefinitions="*,Auto"
+                                  RowDefinitions="Auto,Auto">
+
+                                <Label Grid.Row="0"
+                                       Grid.Column="0"
+                                       Text="{Binding Note}"
+                                       FontAttributes="Bold" />
+
+                                <Label Grid.Row="1"
+                                       Grid.Column="0"
+                                       Text="{Binding ScheduledDate, StringFormat='{0:yyyy-MM-dd}'}"
+                                       FontSize="12"
+                                       TextColor="Gray" />
+
+                                <Label Grid.RowSpan="2"
+                                       Grid.Column="1"
+                                       VerticalOptions="Center"
+                                       Text="{Binding Amount, StringFormat='${0:F2}'}"
+                                       FontAttributes="Bold" />
+                            </Grid>
+
+                        </Border>
+                    </SwipeView>
+
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+        </CollectionView>
 
         <Button Text="+"
                 WidthRequest="56"
@@ -53,6 +86,9 @@
                 HorizontalOptions="End"
                 VerticalOptions="End"
                 Margin="24"
+                Grid.RowSpan="2"
                 Clicked="OnAddClicked" />
+
     </Grid>
+
 </ContentPage>

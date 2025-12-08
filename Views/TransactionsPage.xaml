@@ -5,7 +5,31 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
     <Grid>
-        <CollectionView ItemsSource="{Binding Transactions}"
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <HorizontalStackLayout Grid.Row="0"
+                               Padding="16,8"
+                               Spacing="8">
+            <Label Text="Filter:"
+                   VerticalOptions="Center" />
+
+            <Picker SelectedIndexChanged="OnFilterChanged"
+                    HorizontalOptions="FillAndExpand">
+                <Picker.Items>
+                    <x:String>All</x:String>
+                    <x:String>This week</x:String>
+                    <x:String>This month</x:String>
+                    <x:String>Last month</x:String>
+                    <x:String>Last 3 months</x:String>
+                </Picker.Items>
+            </Picker>
+        </HorizontalStackLayout>
+
+        <CollectionView Grid.Row="1"
+                        ItemsSource="{Binding Transactions}"
                         Margin="16"
                         SelectionMode="Single"
                         SelectionChanged="OnSelectionChanged">
@@ -54,6 +78,7 @@
                 HorizontalOptions="End"
                 VerticalOptions="End"
                 Margin="24"
+                Grid.RowSpan="2"
                 Clicked="OnAddClicked" />
     </Grid>
 </ContentPage>
