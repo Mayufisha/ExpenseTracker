@@ -1,6 +1,8 @@
 ﻿using ExpenseTracker.Services;
 using ExpenseTracker.ViewModels;
 using ExpenseTracker.Views;
+using Microcharts.Maui;
+
 
 namespace ExpenseTracker;
 
@@ -9,6 +11,7 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+        builder.UseMicrocharts();
 
         builder
             .UseMauiApp<App>()

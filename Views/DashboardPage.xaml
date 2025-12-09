@@ -2,7 +2,8 @@
 <ContentPage
     x:Class="ExpenseTracker.Views.DashboardPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:chart="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui">
 
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="16">
@@ -11,7 +12,6 @@
                    FontSize="28"
                    FontAttributes="Bold" />
 
-            <!-- Summary cards -->
             <Grid ColumnDefinitions="*,*"
                   RowDefinitions="Auto,Auto"
                   ColumnSpacing="12"
@@ -51,12 +51,24 @@
                 </Border>
             </Grid>
 
-            <!-- Chart -->
-            <GraphicsView x:Name="ChartView"
-                          HeightRequest="180"
-                          Margin="0,8,0,0" />
+            <Frame Margin="16"
+                Padding="12"
+                BackgroundColor="White"
+                CornerRadius="16"
+                HasShadow="True">
 
-            <!-- Recent transactions list (same as before) -->
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Income vs Expenses"
+               FontSize="18"
+               FontAttributes="Bold"
+               TextColor="Black" />
+
+                    <chart:ChartView x:Name="DashboardChart"
+                         HeightRequest="260" />
+                </VerticalStackLayout>
+            </Frame>
+
+
             <Label Text="Recent Transactions"
                    FontSize="18"
                    FontAttributes="Bold"
