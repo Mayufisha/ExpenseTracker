@@ -95,7 +95,7 @@ Tables are created automatically:
 
 Clone the repo:
 ```bash
-git clone https://github.com/yourusername/ExpenseTracker.git
+git clone https://github.com/mayufisha/ExpenseTracker.git
 cd ExpenseTracker
 ```
 
