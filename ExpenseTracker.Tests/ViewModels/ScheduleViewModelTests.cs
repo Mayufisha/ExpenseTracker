@@ -7,7 +7,7 @@ namespace ExpenseTracker.Tests.ViewModels;
 public class ScheduleViewModelTests
 {
     [Fact]
-    public async Task SelectedRange_ThisMonth_OnlyReturnsCurrentMonth()
+    public async Task SelectedMonthFilter_ThisMonth_OnlyReturnsCurrentMonth()
     {
         var today = DateTime.Today;
         var startOfMonth = new DateTime(today.Year, today.Month, 1);
@@ -21,7 +21,7 @@ public class ScheduleViewModelTests
         }));
 
         await vm.LoadAsync();
-        vm.SelectedRange = TimeRange.ThisMonth;
+        vm.SelectedMonthFilter = vm.MonthFilters.First(f => f.Key == startOfMonth.ToString("yyyy-MM"));
 
         Assert.Equal(2, vm.ScheduledItems.Count);
         Assert.All(vm.ScheduledItems, item => Assert.True(item.ScheduledDate >= startOfMonth));

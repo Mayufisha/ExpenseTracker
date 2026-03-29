@@ -7,7 +7,7 @@ namespace ExpenseTracker.Tests.ViewModels;
 public class TransactionsViewModelTests
 {
     [Fact]
-    public async Task SelectedRange_LastMonth_FiltersCorrectly()
+    public async Task SelectedMonthFilter_LastMonth_FiltersCorrectly()
     {
         var today = DateTime.Today;
         var lastMonth = today.AddMonths(-1);
@@ -25,7 +25,7 @@ public class TransactionsViewModelTests
         var vm = new TransactionsViewModel(service);
         await vm.LoadAsync();
 
-        vm.SelectedRange = TimeRange.LastMonth;
+        vm.SelectedMonthFilter = vm.MonthFilters.First(f => f.Key == lastMonthStart.ToString("yyyy-MM"));
 
         Assert.Equal(2, vm.Transactions.Count);
         Assert.All(vm.Transactions, t =>
@@ -33,24 +33,23 @@ public class TransactionsViewModelTests
     }
 
     [Fact]
-    public async Task SelectedRange_LastThreeMonths_ExcludesOlderItems()
+    public async Task SelectedMonthFilter_AllMonths_ShowsAll()
     {
         var today = DateTime.Today;
-        var boundary = today.AddMonths(-3);
 
         var service = new FakeExpenseService(new[]
         {
             NewExpense(today),
-            NewExpense(boundary),
-            NewExpense(boundary.AddDays(-1))
+            NewExpense(today.AddMonths(-3)),
+            NewExpense(today.AddMonths(-8))
         });
 
         var vm = new TransactionsViewModel(service);
         await vm.LoadAsync();
 
-        vm.SelectedRange = TimeRange.LastThreeMonths;
+        vm.SelectedMonthFilter = vm.MonthFilters.First(f => f.Key == "all");
 
-        Assert.Equal(2, vm.Transactions.Count);
+        Assert.Equal(3, vm.Transactions.Count);
     }
 
     private static Transaction NewExpense(DateTime date)

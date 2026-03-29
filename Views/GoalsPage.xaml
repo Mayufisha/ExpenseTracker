@@ -15,7 +15,14 @@
                        FontSize="28"
                        FontAttributes="Bold" />
 
-                <CollectionView ItemsSource="{Binding Goals}">
+                <Picker ItemsSource="{Binding MonthFilters}"
+                        ItemDisplayBinding="{Binding Label}"
+                        SelectedItem="{Binding SelectedMonthFilter}"
+                        Title="Filter by month" />
+
+                <CollectionView ItemsSource="{Binding Goals}"
+                                SelectionMode="Single"
+                                SelectionChanged="OnSelectionChanged">
                     <CollectionView.EmptyView>
                         <VerticalStackLayout Padding="16" Spacing="8">
                             <Label Text="No goals yet."

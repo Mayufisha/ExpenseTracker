@@ -16,19 +16,13 @@
         <HorizontalStackLayout Grid.Row="0"
                                Padding="16,8"
                                Spacing="8">
-            <Label Text="Filter:"
+            <Label Text="Month:"
                    VerticalOptions="Center" />
 
-            <Picker SelectedIndexChanged="OnFilterChanged"
-                    HorizontalOptions="Fill">
-                <Picker.Items>
-                    <x:String>All</x:String>
-                    <x:String>This week</x:String>
-                    <x:String>This month</x:String>
-                    <x:String>Last month</x:String>
-                    <x:String>Last 3 months</x:String>
-                </Picker.Items>
-            </Picker>
+            <Picker ItemsSource="{Binding MonthFilters}"
+                    ItemDisplayBinding="{Binding Label}"
+                    SelectedItem="{Binding SelectedMonthFilter}"
+                    HorizontalOptions="FillAndExpand" />
         </HorizontalStackLayout>
 
         <CollectionView Grid.Row="1"

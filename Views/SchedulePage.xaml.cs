@@ -68,17 +68,4 @@ public partial class SchedulePage : ContentPage
         await _viewModel.DeleteAsync(item);
     }
 
-    void OnFilterChanged(object sender, EventArgs e)
-    {
-        if (sender is not Picker picker) return;
-
-        _viewModel.SelectedRange = picker.SelectedIndex switch
-        {
-            1 => TimeRange.ThisWeek,
-            2 => TimeRange.ThisMonth,
-            3 => TimeRange.LastMonth,
-            4 => TimeRange.LastThreeMonths,
-            _ => TimeRange.All
-        };
-    }
 }

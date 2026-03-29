@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <Compile Include="..\\Models\\Category.cs" Link="Source\\Models\\Category.cs" />
+    <Compile Include="..\\Models\\MonthFilterOption.cs" Link="Source\\Models\\MonthFilterOption.cs" />
+    <Compile Include="..\\Models\\MonthlyNetPoint.cs" Link="Source\\Models\\MonthlyNetPoint.cs" />
     <Compile Include="..\\Models\\ScheduledTransaction.cs" Link="Source\\Models\\ScheduledTransaction.cs" />
     <Compile Include="..\\Models\\TimeRange.cs" Link="Source\\Models\\TimeRange.cs" />
     <Compile Include="..\\Models\\Transaction.cs" Link="Source\\Models\\Transaction.cs" />

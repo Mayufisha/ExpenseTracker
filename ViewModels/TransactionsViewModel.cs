@@ -9,17 +9,18 @@ public class TransactionsViewModel : BaseViewModel
     private readonly IExpenseService _expenseService;
 
     public ObservableCollection<Transaction> Transactions { get; } = new();
+    public ObservableCollection<MonthFilterOption> MonthFilters { get; } = new();
 
-    private List<Transaction> _allTransactions = new();   
+    private readonly List<Transaction> _allTransactions = new();
 
-    private TimeRange _selectedRange = TimeRange.All;
-    public TimeRange SelectedRange
+    private MonthFilterOption? _selectedMonthFilter;
+    public MonthFilterOption? SelectedMonthFilter
     {
-        get => _selectedRange;
+        get => _selectedMonthFilter;
         set
         {
-            if (_selectedRange == value) return;
-            _selectedRange = value;
+            if (_selectedMonthFilter?.Key == value?.Key) return;
+            _selectedMonthFilter = value;
             OnPropertyChanged();
             ApplyFilter();
         }
@@ -37,52 +38,53 @@ public class TransactionsViewModel : BaseViewModel
 
         Transactions.Clear();
         _allTransactions.Clear();
+        MonthFilters.Clear();
 
         var items = await _expenseService.GetTransactionsAsync();
-        _allTransactions = items.ToList();
+        _allTransactions.AddRange(items);
+
+        BuildMonthFilters();
 
         ApplyFilter();
 
         IsBusy = false;
     }
 
-    void ApplyFilter()
+    private void BuildMonthFilters()
+    {
+        MonthFilters.Add(new MonthFilterOption { Key = "all", Label = "All Months" });
+
+        var monthKeys = _allTransactions
+            .Select(t => new DateTime(t.Date.Year, t.Date.Month, 1))
+            .Distinct()
+            .OrderByDescending(d => d)
+            .ToList();
+
+        foreach (var month in monthKeys)
+        {
+            MonthFilters.Add(new MonthFilterOption
+            {
+                Key = month.ToString("yyyy-MM"),
+                Label = month.ToString("MMMM yyyy")
+            });
+        }
+
+        var currentMonthKey = DateTime.Today.ToString("yyyy-MM");
+        SelectedMonthFilter = MonthFilters.FirstOrDefault(f => f.Key == currentMonthKey) ?? MonthFilters.FirstOrDefault();
+    }
+
+    private void ApplyFilter()
     {
         Transactions.Clear();
 
-        var today = DateTime.Today;
-        DateTime start;
-
         IEnumerable<Transaction> query = _allTransactions;
-
-        switch (SelectedRange)
+        var selectedKey = SelectedMonthFilter?.Key ?? "all";
+        if (!string.Equals(selectedKey, "all", StringComparison.OrdinalIgnoreCase)
+            && DateTime.TryParseExact(selectedKey + "-01", "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var selectedMonth))
         {
-            case TimeRange.ThisWeek:
-                int diff = (7 + (int)today.DayOfWeek - (int)DayOfWeek.Monday) % 7;
-                start = today.AddDays(-diff);
-                query = query.Where(t => t.Date.Date >= start);
-                break;
-
-            case TimeRange.ThisMonth:
-                start = new DateTime(today.Year, today.Month, 1);
-                query = query.Where(t => t.Date.Date >= start);
-                break;
-
-            case TimeRange.LastMonth:
-                var lastMonthDate = today.AddMonths(-1);
-                start = new DateTime(lastMonthDate.Year, lastMonthDate.Month, 1);
-                var endLast = start.AddMonths(1);
-                query = query.Where(t => t.Date.Date >= start && t.Date.Date < endLast);
-                break;
-
-            case TimeRange.LastThreeMonths:
-                start = today.AddMonths(-3);
-                query = query.Where(t => t.Date.Date >= start);
-                break;
-
-            case TimeRange.All:
-            default:
-                break;
+            var start = new DateTime(selectedMonth.Year, selectedMonth.Month, 1);
+            var end = start.AddMonths(1);
+            query = query.Where(t => t.Date.Date >= start && t.Date.Date < end);
         }
 
         foreach (var t in query.OrderByDescending(t => t.Date))
