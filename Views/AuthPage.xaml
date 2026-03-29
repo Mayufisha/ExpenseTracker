@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ExpenseTracker.Views.AuthPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="Welcome">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="14">
+            <Label Text="ExpenseTracker"
+                   FontSize="34"
+                   FontAttributes="Bold" />
+            <Label Text="Sign in to sync your data across devices."
+                   TextColor="Gray" />
+
+            <Entry x:Name="ServerUrlEntry"
+                   Placeholder="Server URL (e.g. https://api.example.com)" />
+            <Entry x:Name="EmailEntry"
+                   Placeholder="Email"
+                   Keyboard="Email" />
+            <Entry x:Name="PasswordEntry"
+                   Placeholder="Password"
+                   IsPassword="True" />
+
+            <HorizontalStackLayout Spacing="10">
+                <Button Text="Sign Up"
+                        HorizontalOptions="FillAndExpand"
+                        Clicked="OnSignUpClicked" />
+                <Button Text="Login"
+                        HorizontalOptions="FillAndExpand"
+                        Clicked="OnLoginClicked" />
+            </HorizontalStackLayout>
+
+            <Button Text="Just trying it"
+                    Clicked="OnGuestClicked"
+                    BackgroundColor="Transparent"
+                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Secondary}}" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

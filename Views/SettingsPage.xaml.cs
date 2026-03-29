@@ -227,6 +227,10 @@ public partial class SettingsPage : ContentPage
     {
         _accountService.SignOut();
         LoadAccountState();
+        if (Application.Current is App app)
+        {
+            app.NavigateToAuth();
+        }
     }
 
     private void ApplyServerUrl()
