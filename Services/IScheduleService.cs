@@ -7,4 +7,5 @@ public interface IScheduleService
     Task<IReadOnlyList<ScheduledTransaction>> GetScheduledAsync();
     Task AddOrUpdateAsync(ScheduledTransaction scheduled);
     Task DeleteAsync(int id);
+    Task ClearAllAsync();
 }

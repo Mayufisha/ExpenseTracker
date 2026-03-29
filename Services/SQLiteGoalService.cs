@@ -19,31 +19,6 @@ public class SQLiteGoalService : IGoalService
 
         await _db.CreateTableAsync<Goal>();
 
-        var count = await _db.Table<Goal>().CountAsync();
-        if (count == 0)
-        {
-            var seedGoals = new[]
-            {
-                new Goal
-                {
-                    Name = "Emergency Fund",
-                    TargetAmount = 500,
-                    CurrentAmount = 150,
-                    Deadline = DateTime.Today.AddMonths(2),
-                    IsCompleted = false
-                },
-                new Goal
-                {
-                    Name = "New Laptop",
-                    TargetAmount = 1200,
-                    CurrentAmount = 400,
-                    Deadline = DateTime.Today.AddMonths(6),
-                    IsCompleted = false
-                }
-            };
-            await _db.InsertAllAsync(seedGoals);
-        }
-
         _initialized = true;
     }
 
@@ -71,5 +46,11 @@ public class SQLiteGoalService : IGoalService
     {
         await InitAsync();
         await _db.DeleteAsync<Goal>(id);
+    }
+
+    public async Task ClearAllAsync()
+    {
+        await InitAsync();
+        await _db.DeleteAllAsync<Goal>();
     }
 }

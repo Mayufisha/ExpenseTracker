@@ -2,7 +2,10 @@
 <ContentPage
     x:Class="ExpenseTracker.Views.TransactionsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewmodels="clr-namespace:ExpenseTracker.ViewModels"
+    xmlns:models="clr-namespace:ExpenseTracker.Models"
+    x:DataType="viewmodels:TransactionsViewModel">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -33,8 +36,16 @@
                         Margin="16"
                         SelectionMode="Single"
                         SelectionChanged="OnSelectionChanged">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="16" Spacing="8">
+                    <Label Text="No transactions yet."
+                           FontAttributes="Bold" />
+                    <Label Text="Tap + to add your first transaction."
+                           TextColor="Gray" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="models:Transaction">
                     <SwipeView>
                         <SwipeView.RightItems>
                             <SwipeItems Mode="Reveal">

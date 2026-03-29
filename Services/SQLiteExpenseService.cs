@@ -19,6 +19,7 @@ public class SQLiteExpenseService : IExpenseService
 
         await _db.CreateTableAsync<Category>();
         await _db.CreateTableAsync<Transaction>();
+        await EnsureTransactionSchemaAsync();
 
         var count = await _db.Table<Category>().CountAsync();
         if (count == 0)
@@ -29,12 +30,29 @@ public class SQLiteExpenseService : IExpenseService
                 new Category { Name = "Transport",  ColorHex = "#4CAF50" },
                 new Category { Name = "Bills",      ColorHex = "#F44336" },
                 new Category { Name = "Salary",     ColorHex = "#2196F3" },
+                new Category { Name = "Investments", ColorHex = "#3F51B5" },
+                new Category { Name = "Debt",       ColorHex = "#795548" },
                 new Category { Name = "Other",      ColorHex = "#9E9E9E" }
             };
             await _db.InsertAllAsync(defaults);
         }
 
         _initialized = true;
+    }
+
+    private async Task EnsureTransactionSchemaAsync()
+    {
+        try
+        {
+            await _db.ExecuteAsync("ALTER TABLE \"Transaction\" ADD COLUMN Type TEXT");
+        }
+        catch
+        {
+            // Column already exists.
+        }
+
+        await _db.ExecuteAsync(
+            "UPDATE \"Transaction\" SET Type = CASE WHEN IsIncome = 1 THEN 'Income' ELSE 'Expense' END WHERE Type IS NULL OR TRIM(Type) = ''");
     }
 
     public async Task<IReadOnlyList<Category>> GetCategoriesAsync()
@@ -52,6 +70,10 @@ public class SQLiteExpenseService : IExpenseService
         foreach (var t in txs)
         {
             t.Category = categories.FirstOrDefault(c => c.Id == t.CategoryId);
+            if (string.IsNullOrWhiteSpace(t.Type))
+            {
+                t.Type = t.IsIncome ? TransactionType.Income.ToString() : TransactionType.Expense.ToString();
+            }
         }
 
         return txs;
@@ -60,6 +82,15 @@ public class SQLiteExpenseService : IExpenseService
     public async Task AddOrUpdateTransactionAsync(Transaction transaction)
     {
         await InitAsync();
+
+        if (string.IsNullOrWhiteSpace(transaction.Type))
+        {
+            transaction.Type = transaction.IsIncome
+                ? TransactionType.Income.ToString()
+                : TransactionType.Expense.ToString();
+        }
+
+        transaction.IsIncome = transaction.ParsedType == TransactionType.Income;
 
         if (transaction.Id == 0)
             await _db.InsertAsync(transaction);

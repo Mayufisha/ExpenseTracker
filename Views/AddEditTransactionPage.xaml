@@ -12,19 +12,8 @@
                    FontSize="24"
                    FontAttributes="Bold" />
 
-            <Grid ColumnDefinitions="*,*"
-                  ColumnSpacing="12">
-                <Button x:Name="ExpenseButton"
-                        Text="Expense"
-                        Clicked="OnExpenseClicked"
-                        BackgroundColor="#F44336"
-                        TextColor="White" />
-                <Button x:Name="IncomeButton"
-                        Grid.Column="1"
-                        Text="Income"
-                        Clicked="OnIncomeClicked"
-                        BackgroundColor="#E0E0E0" />
-            </Grid>
+            <Picker x:Name="TypePicker"
+                    Title="Type" />
 
             <Entry x:Name="AmountEntry"
                    Placeholder="Amount"

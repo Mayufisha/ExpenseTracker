@@ -38,11 +38,19 @@ public partial class DashboardPage : ContentPage
                 TextColor = SKColors.Gray,
                 ValueLabelColor = SKColors.Black
             },
-            new ChartEntry((float)_viewModel.Balance)
+            new ChartEntry((float)_viewModel.TotalAssets)
             {
-                Label = "Balance",
-                ValueLabel = _viewModel.Balance.ToString("0"),
+                Label = "Assets",
+                ValueLabel = _viewModel.TotalAssets.ToString("0"),
                 Color = SKColor.Parse("#2196F3"),
+                TextColor = SKColors.Gray,
+                ValueLabelColor = SKColors.Black
+            },
+            new ChartEntry((float)_viewModel.TotalLiabilities)
+            {
+                Label = "Liabilities",
+                ValueLabel = _viewModel.TotalLiabilities.ToString("0"),
+                Color = SKColor.Parse("#FF9800"),
                 TextColor = SKColors.Gray,
                 ValueLabelColor = SKColors.Black
             }

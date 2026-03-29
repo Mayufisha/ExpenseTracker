@@ -2,7 +2,10 @@
 <ContentPage
     x:Class="ExpenseTracker.Views.SchedulePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewmodels="clr-namespace:ExpenseTracker.ViewModels"
+    xmlns:models="clr-namespace:ExpenseTracker.Models"
+    x:DataType="viewmodels:ScheduleViewModel">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -32,9 +35,17 @@
                         ItemsSource="{Binding ScheduledItems}"
                         Margin="16"
                         SelectionMode="None">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="16" Spacing="8">
+                    <Label Text="No scheduled items yet."
+                           FontAttributes="Bold" />
+                    <Label Text="Tap + to schedule an upcoming payment."
+                           TextColor="Gray" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
 
             <CollectionView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="models:ScheduledTransaction">
 
                     <SwipeView>
                         <SwipeView.RightItems>

@@ -24,11 +24,32 @@ public class DashboardViewModel : BaseViewModel
         set { totalExpense = value; OnPropertyChanged(); }
     }
 
-    decimal balance;
-    public decimal Balance
+    decimal totalAssets;
+    public decimal TotalAssets
     {
-        get => balance;
-        set { balance = value; OnPropertyChanged(); }
+        get => totalAssets;
+        set { totalAssets = value; OnPropertyChanged(); }
+    }
+
+    decimal totalLiabilities;
+    public decimal TotalLiabilities
+    {
+        get => totalLiabilities;
+        set { totalLiabilities = value; OnPropertyChanged(); }
+    }
+
+    decimal netCashFlow;
+    public decimal NetCashFlow
+    {
+        get => netCashFlow;
+        set { netCashFlow = value; OnPropertyChanged(); }
+    }
+
+    decimal netWorth;
+    public decimal NetWorth
+    {
+        get => netWorth;
+        set { netWorth = value; OnPropertyChanged(); }
     }
 
     public DashboardViewModel(IExpenseService expenseService)
@@ -47,9 +68,13 @@ public class DashboardViewModel : BaseViewModel
         foreach (var t in items)
             Transactions.Add(t);
 
-        TotalIncome = Transactions.Where(t => t.IsIncome).Sum(t => t.Amount);
-        TotalExpense = Transactions.Where(t => !t.IsIncome).Sum(t => t.Amount);
-        Balance = TotalIncome - TotalExpense;
+        TotalIncome = Transactions.Where(t => t.ParsedType == TransactionType.Income).Sum(t => t.Amount);
+        TotalExpense = Transactions.Where(t => t.ParsedType == TransactionType.Expense).Sum(t => t.Amount);
+        TotalAssets = Transactions.Where(t => t.ParsedType == TransactionType.Asset).Sum(t => t.Amount);
+        TotalLiabilities = Transactions.Where(t => t.ParsedType == TransactionType.Liability).Sum(t => t.Amount);
+
+        NetCashFlow = TotalIncome - TotalExpense;
+        NetWorth = TotalAssets - TotalLiabilities;
 
         IsBusy = false;
     }

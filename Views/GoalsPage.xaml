@@ -2,7 +2,10 @@
 <ContentPage
     x:Class="ExpenseTracker.Views.GoalsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewmodels="clr-namespace:ExpenseTracker.ViewModels"
+    xmlns:models="clr-namespace:ExpenseTracker.Models"
+    x:DataType="viewmodels:GoalsViewModel">
 
     <Grid>
         <ScrollView>
@@ -13,8 +16,16 @@
                        FontAttributes="Bold" />
 
                 <CollectionView ItemsSource="{Binding Goals}">
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout Padding="16" Spacing="8">
+                            <Label Text="No goals yet."
+                                   FontAttributes="Bold" />
+                            <Label Text="Tap + to create your first savings goal."
+                                   TextColor="Gray" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
                     <CollectionView.ItemTemplate>
-                        <DataTemplate>
+                        <DataTemplate x:DataType="models:Goal">
                             <SwipeView>
                                 <SwipeView.RightItems>
                                     <SwipeItems Mode="Reveal">

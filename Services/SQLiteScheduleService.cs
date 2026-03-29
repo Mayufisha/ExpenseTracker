@@ -19,32 +19,6 @@ public class SQLiteScheduleService : IScheduleService
 
         await _db.CreateTableAsync<ScheduledTransaction>();
 
-        var count = await _db.Table<ScheduledTransaction>().CountAsync();
-        if (count == 0)
-        {
-            var seed = new[]
-            {
-                new ScheduledTransaction
-                {
-                    Note = "Rent",
-                    Amount = 1000,
-                    IsIncome = false,
-                    ScheduledDate = DateTime.Today.AddDays(7),
-                    Frequency = "Monthly"
-                },
-                new ScheduledTransaction
-                {
-                    Note = "Gym membership",
-                    Amount = 40,
-                    IsIncome = false,
-                    ScheduledDate = DateTime.Today.AddDays(3),
-                    Frequency = "Monthly"
-                }
-            };
-
-            await _db.InsertAllAsync(seed);
-        }
-
         _initialized = true;
     }
 
@@ -70,5 +44,11 @@ public class SQLiteScheduleService : IScheduleService
     {
         await InitAsync();
         await _db.DeleteAsync<ScheduledTransaction>(id);
+    }
+
+    public async Task ClearAllAsync()
+    {
+        await InitAsync();
+        await _db.DeleteAllAsync<ScheduledTransaction>();
     }
 }

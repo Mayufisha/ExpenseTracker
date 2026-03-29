@@ -7,4 +7,5 @@ public interface IGoalService
     Task<IReadOnlyList<Goal>> GetGoalsAsync();
     Task AddOrUpdateGoalAsync(Goal goal);
     Task DeleteGoalAsync(int id);
+    Task ClearAllAsync();
 }

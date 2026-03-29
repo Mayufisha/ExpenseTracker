@@ -6,14 +6,12 @@ namespace ExpenseTracker.Views;
 public partial class AddEditTransactionPage : ContentPage
 {
     private readonly IExpenseService _expenseService;
-    private Transaction _editing;
-    private bool _isIncome;
+    private Transaction? _editing;
 
     public AddEditTransactionPage(IExpenseService expenseService)
     {
         InitializeComponent();
         _expenseService = expenseService;
-        _isIncome = false;
     }
 
     public AddEditTransactionPage(IExpenseService expenseService, Transaction existing)
@@ -29,6 +27,7 @@ public partial class AddEditTransactionPage : ContentPage
         try
         {
             var categories = await _expenseService.GetCategoriesAsync();
+            TypePicker.ItemsSource = Enum.GetNames<TransactionType>();
 
             if (categories == null || !categories.Any())
             {
@@ -47,8 +46,7 @@ public partial class AddEditTransactionPage : ContentPage
                 AmountEntry.Text = _editing.Amount.ToString("F2");
                 DatePicker.Date = _editing.Date;
                 NoteEditor.Text = _editing.Note ?? string.Empty;
-                _isIncome = _editing.IsIncome;
-                UpdateTypeButtons();
+                TypePicker.SelectedItem = _editing.ParsedType.ToString();
 
                 if (_editing.CategoryId != 0)
                 {
@@ -64,47 +62,16 @@ public partial class AddEditTransactionPage : ContentPage
             {
                 TitleLabel.Text = "Add Transaction";
                 DatePicker.Date = DateTime.Today;
-                _isIncome = false;
-                UpdateTypeButtons();
+                TypePicker.SelectedItem = TransactionType.Expense.ToString();
 
                 // Hide delete button when adding new
                 DeleteButton.IsVisible = false;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await DisplayAlert("Error", "Failed to load categories. Please try again.", "OK");
             await Navigation.PopModalAsync();
-        }
-    }
-
-    void OnExpenseClicked(object sender, EventArgs e)
-    {
-        _isIncome = false;
-        UpdateTypeButtons();
-    }
-
-    void OnIncomeClicked(object sender, EventArgs e)
-    {
-        _isIncome = true;
-        UpdateTypeButtons();
-    }
-
-    void UpdateTypeButtons()
-    {
-        if (_isIncome)
-        {
-            IncomeButton.BackgroundColor = Color.FromArgb("#4CAF50");
-            IncomeButton.TextColor = Colors.White;
-            ExpenseButton.BackgroundColor = Color.FromArgb("#E0E0E0");
-            ExpenseButton.TextColor = Colors.Black;
-        }
-        else
-        {
-            ExpenseButton.BackgroundColor = Color.FromArgb("#F44336");
-            ExpenseButton.TextColor = Colors.White;
-            IncomeButton.BackgroundColor = Color.FromArgb("#E0E0E0");
-            IncomeButton.TextColor = Colors.Black;
         }
     }
 
@@ -130,6 +97,13 @@ public partial class AddEditTransactionPage : ContentPage
             return;
         }
 
+        if (TypePicker.SelectedItem is not string selectedType
+            || !Enum.TryParse<TransactionType>(selectedType, out var parsedType))
+        {
+            ShowError("Select a transaction type.");
+            return;
+        }
+
         var date = DatePicker.Date;
 
         if (_editing == null)
@@ -138,7 +112,7 @@ public partial class AddEditTransactionPage : ContentPage
         }
 
         _editing.Amount = amount;
-        _editing.IsIncome = _isIncome;
+        _editing.ParsedType = parsedType;
         _editing.CategoryId = category.Id;
         _editing.Date = date;
         _editing.Note = NoteEditor.Text ?? string.Empty;
@@ -148,7 +122,7 @@ public partial class AddEditTransactionPage : ContentPage
             await _expenseService.AddOrUpdateTransactionAsync(_editing);
             await Navigation.PopModalAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             ShowError("Failed to save transaction. Please try again.");
         }
@@ -175,7 +149,7 @@ public partial class AddEditTransactionPage : ContentPage
             await DisplayAlert("Done", "The transaction has been deleted.", "OK");
             await Navigation.PopModalAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             await DisplayAlert("Error", "Failed to delete transaction. Please try again.", "OK");
         }

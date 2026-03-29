@@ -3,7 +3,10 @@
     x:Class="ExpenseTracker.Views.DashboardPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:chart="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui">
+    xmlns:chart="clr-namespace:Microcharts.Maui;assembly=Microcharts.Maui"
+    xmlns:viewmodels="clr-namespace:ExpenseTracker.ViewModels"
+    xmlns:models="clr-namespace:ExpenseTracker.Models"
+    x:DataType="viewmodels:DashboardViewModel">
 
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="16">
@@ -13,7 +16,7 @@
                    FontAttributes="Bold" />
 
             <Grid ColumnDefinitions="*,*"
-                  RowDefinitions="Auto,Auto"
+                  RowDefinitions="Auto,Auto,Auto"
                   ColumnSpacing="12"
                   RowSpacing="12">
 
@@ -43,9 +46,31 @@
                         StrokeShape="RoundRectangle 16"
                         Padding="12">
                     <VerticalStackLayout>
-                        <Label Text="Balance" FontAttributes="Bold" />
-                        <Label Text="{Binding Balance, StringFormat='${0:F2}'}"
-                               FontSize="24"
+                        <Label Text="Assets" FontAttributes="Bold" />
+                        <Label Text="{Binding TotalAssets, StringFormat='${0:F2}'}"
+                               FontSize="20"
+                               FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="2" Grid.Column="0"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="12">
+                    <VerticalStackLayout>
+                        <Label Text="Liabilities" FontAttributes="Bold" />
+                        <Label Text="{Binding TotalLiabilities, StringFormat='${0:F2}'}"
+                               FontSize="20"
+                               FontAttributes="Bold" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Grid.Row="2" Grid.Column="1"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="12">
+                    <VerticalStackLayout>
+                        <Label Text="Net Cashflow" FontAttributes="Bold" />
+                        <Label Text="{Binding NetCashFlow, StringFormat='${0:F2}'}"
+                               FontSize="20"
                                FontAttributes="Bold" />
                     </VerticalStackLayout>
                 </Border>
@@ -58,7 +83,7 @@
                 HasShadow="True">
 
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="Income vs Expenses"
+                    <Label Text="Income, Expenses, Assets, Liabilities"
                FontSize="18"
                FontAttributes="Bold"
                TextColor="Black" />
@@ -68,6 +93,16 @@
                 </VerticalStackLayout>
             </Frame>
 
+            <Border StrokeShape="RoundRectangle 16"
+                    Padding="12">
+                <VerticalStackLayout>
+                    <Label Text="Net Worth" FontAttributes="Bold" />
+                    <Label Text="{Binding NetWorth, StringFormat='${0:F2}'}"
+                           FontSize="22"
+                           FontAttributes="Bold" />
+                </VerticalStackLayout>
+            </Border>
+
 
             <Label Text="Recent Transactions"
                    FontSize="18"
@@ -75,8 +110,16 @@
                    Margin="0,16,0,0" />
 
             <CollectionView ItemsSource="{Binding Transactions}">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="16" Spacing="8">
+                        <Label Text="No transactions yet."
+                               FontAttributes="Bold" />
+                        <Label Text="Add your first record from the Transactions tab."
+                               TextColor="Gray" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="models:Transaction">
                         <Border StrokeShape="RoundRectangle 12"
                                 Padding="12"
                                 Margin="0,4">
@@ -88,7 +131,7 @@
                                        FontAttributes="Bold" />
                                 <Label Grid.Row="1"
                                        Grid.Column="0"
-                                       Text="{Binding Category.Name}"
+                                       Text="{Binding Type}"
                                        FontSize="12"
                                        TextColor="Gray" />
                                 <Label Grid.RowSpan="2"
