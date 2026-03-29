@@ -1,130 +1,56 @@
-# 📌 Expense Tracker – .NET MAUI
+# ExpenseTracker (.NET MAUI)
 
-A modern cross-platform expense tracking application built with .NET MAUI, SQLite, MVVM, and Microcharts.
+ExpenseTracker is a cross-platform personal finance app built with .NET MAUI, SQLite, and MVVM.
 
-## ✨ Features
+## Features
 
-### 🔹 Dashboard
-* Displays Total Income, Total Expenses, and Balance
-* Includes a vertical bar chart (Microcharts)
-* Shows recent transactions
+- Dashboard with Income, Expenses, Assets, Liabilities, Net Cashflow, and Net Worth
+- Transactions: add, edit, delete, and filter by date range
+- Goals: create and track savings goals
+- Schedule: track upcoming payments
+- Settings:
+- Theme preference (System/Light/Dark)
+- Delete all app data (transactions, goals, scheduled items)
+- Export backup to JSON
+- Import backup from JSON
 
-### 🔹 Transactions
-* Add, edit, and delete transactions
-* Swipe-to-delete support
-* Filter by:
-   * All
-   * This Week
-   * This Month
-   * Last Month
-   * Last 3 Months
+## Architecture
 
-### 🔹 Goals
-* Create and track savings goals
-* Dynamic progress calculation
-* Deadline support
-* Swipe-to-delete
+- `Models/` data and enums
+- `Services/` SQLite persistence and backup service
+- `ViewModels/` page logic
+- `Views/` XAML pages and UI interactions
 
-### 🔹 Schedule
-* Add upcoming or recurring payments
-* Filter by date range
-* Swipe-to-delete
+## Tech Stack
 
-### 🔹 Settings
-* Delete all transactions
-* (Expandable for future features)
+- .NET 9 MAUI
+- SQLite (`sqlite-net-pcl`)
+- Charts (`Microcharts.Maui`)
 
-## 🏛 Architecture
+## Data Storage
 
-The application uses the MVVM (Model–View–ViewModel) pattern:
+- Local database file: `expenses.db3`
+- Backup file format: JSON
 
-### Models
-* `Transaction`
-* `Category`
-* `Goal`
-* `ScheduledTransaction`
-* `TimeRange` (shared filter enum)
-
-### Services
-* `SQLiteExpenseService`
-* `SQLiteGoalService`
-* `SQLiteScheduleService`
-
-### ViewModels
-* `DashboardViewModel`
-* `TransactionsViewModel`
-* `GoalsViewModel`
-* `ScheduleViewModel`
-
-### Views
-* `DashboardPage`
-* `TransactionsPage`
-* `GoalsPage`
-* `SchedulePage`
-* `SettingsPage`
-
-## 📊 Charts (Microcharts)
-
-Dashboard uses Microcharts.Maui to render a clean bar chart:
-* Income
-* Expenses
-* Balance
-
-Configured in `DashboardPage.xaml.cs`.
-
-## 🗂 Database
-
-SQLite database stored locally:
-```
-expenses.db3
-```
-
-Tables are created automatically:
-* Transactions
-* Goals
-* Scheduled transactions
-
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
-* .NET 8 or .NET 9
-* Visual Studio 2022 with MAUI workload
-* Windows / macOS / Android device or emulator
 
-### Installation
+- .NET 9 SDK
+- MAUI workload
+- Visual Studio 2022 (or newer) with MAUI support
 
-Clone the repo:
-```bash
-git clone https://github.com/mayufisha/ExpenseTracker.git
-cd ExpenseTracker
-```
+### Build
 
-Restore packages:
 ```bash
 dotnet restore
+dotnet build ExpenseTracker.sln
 ```
 
-Run the project:
-```bash
-dotnet maui run
-```
+Run on a target device/emulator from Visual Studio or with MAUI CLI commands.
 
-## 📦 NuGet Packages Used
-```text
-Microcharts.Maui
-SQLite-net-pcl
-CommunityToolkit.Mvvm
-```
+## Current Scope and Notes
 
-## 📝 Future Improvements
-* Category-based pie chart
-* Monthly trend line graph
-* Export to CSV / PDF
-* User authentication
-* Cloud sync options
-
-## 📄 License
-
-This project is for educational purposes as part of the Vancouver Community College CST .NET MAUI Final Project.
-- First Wireframe Design  
-  [📄 View Desktop UI Wireframe](./Desktop%20UI.pdf)
+- No cloud sync yet (local-only app)
+- No authentication yet
+- Test coverage focuses on viewmodel filtering and dashboard aggregates

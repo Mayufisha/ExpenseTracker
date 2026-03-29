@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Local dotnet CLI home/cache created for sandbox-safe restore/build.
+.dotnet/
