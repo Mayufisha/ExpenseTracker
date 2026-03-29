@@ -5,13 +5,16 @@ namespace ExpenseTracker.Views;
 public partial class SettingsPage : ContentPage
 {
     private readonly IBackupService _backupService;
+    private readonly IAccountService _accountService;
 
-    public SettingsPage(IBackupService backupService)
+    public SettingsPage(IBackupService backupService, IAccountService accountService)
     {
         InitializeComponent();
         _backupService = backupService;
+        _accountService = accountService;
 
         LoadThemePreference();
+        LoadAccountState();
     }
 
     void LoadThemePreference()
@@ -68,40 +71,6 @@ public partial class SettingsPage : ContentPage
         }
         catch (Exception)
         {
-        }
-    }
-
-    async void OnDeleteAllClicked(object sender, EventArgs e)
-    {
-        var confirm = await DisplayAlert(
-            "Delete All",
-            "Are you sure you want to delete all transactions, goals, and scheduled items? This cannot be undone.",
-            "Yes", "No");
-
-        if (!confirm) return;
-
-        try
-        {
-            if (sender is Button button)
-            {
-                button.IsEnabled = false;
-                button.Text = "Deleting...";
-            }
-
-            await _backupService.ClearAllDataAsync();
-            await DisplayAlert("Done", "All data has been deleted.", "OK");
-        }
-        catch (Exception)
-        {
-            await DisplayAlert("Error", "Failed to delete data. Please try again.", "OK");
-        }
-        finally
-        {
-            if (sender is Button button)
-            {
-                button.IsEnabled = true;
-                button.Text = "Delete All Data";
-            }
         }
     }
 
@@ -192,5 +161,86 @@ public partial class SettingsPage : ContentPage
                 button.Text = "Import Backup";
             }
         }
+    }
+
+    async void OnRegisterClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            ApplyServerUrl();
+            await _accountService.RegisterAsync(EmailEntry.Text ?? string.Empty, PasswordEntry.Text ?? string.Empty);
+            await DisplayAlert("Account", "Registration successful. You can sign in now.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Account Error", ex.Message, "OK");
+        }
+    }
+
+    async void OnSignInClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            ApplyServerUrl();
+            await _accountService.SignInAsync(EmailEntry.Text ?? string.Empty, PasswordEntry.Text ?? string.Empty);
+            LoadAccountState();
+            await DisplayAlert("Account", "Signed in successfully.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Account Error", ex.Message, "OK");
+        }
+    }
+
+    async void OnUploadSyncClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            ApplyServerUrl();
+            await _accountService.PushToCloudAsync();
+            await DisplayAlert("Cloud Sync", "Your local data was uploaded successfully.", "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Sync Error", ex.Message, "OK");
+        }
+    }
+
+    async void OnDownloadSyncClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            ApplyServerUrl();
+            var result = await _accountService.PullFromCloudAsync();
+            await DisplayAlert(
+                "Cloud Sync",
+                $"Downloaded data.\nTransactions: {result.ImportedTransactions}\nGoals: {result.ImportedGoals}\nScheduled: {result.ImportedScheduledItems}",
+                "OK");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Sync Error", ex.Message, "OK");
+        }
+    }
+
+    void OnSignOutClicked(object sender, EventArgs e)
+    {
+        _accountService.SignOut();
+        LoadAccountState();
+    }
+
+    private void ApplyServerUrl()
+    {
+        _accountService.SetServerUrl(ServerUrlEntry.Text ?? string.Empty);
+    }
+
+    private void LoadAccountState()
+    {
+        var session = _accountService.Session;
+        ServerUrlEntry.Text = session.ServerUrl;
+        EmailEntry.Text = session.Email;
+        AccountStatusLabel.Text = session.IsSignedIn
+            ? $"Signed in as {session.Email}"
+            : "Not signed in";
     }
 }

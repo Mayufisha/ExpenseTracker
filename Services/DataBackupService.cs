@@ -21,25 +21,7 @@ public class DataBackupService : IBackupService
 
     public async Task<string> ExportBackupAsync(string outputDirectory)
     {
-        var transactions = await _expenseService.GetTransactionsAsync();
-        var goals = await _goalService.GetGoalsAsync();
-        var scheduledItems = await _scheduleService.GetScheduledAsync();
-
-        var backup = new DataBackup
-        {
-            Transactions = transactions
-                .Select(t => new TransactionBackupItem
-                {
-                    Amount = t.Amount,
-                    Type = t.ParsedType.ToString(),
-                    Date = t.Date,
-                    Note = t.Note,
-                    CategoryName = t.Category?.Name ?? "Other"
-                })
-                .ToList(),
-            Goals = goals.Select(CloneGoal).ToList(),
-            ScheduledItems = scheduledItems.Select(CloneScheduledItem).ToList()
-        };
+        var backup = await CreateBackupAsync();
 
         Directory.CreateDirectory(outputDirectory);
         var fileName = $"expense-backup-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json";
@@ -61,6 +43,34 @@ public class DataBackupService : IBackupService
         var backup = JsonSerializer.Deserialize<DataBackup>(json, SerializerOptions)
             ?? throw new InvalidDataException("Backup file format is invalid.");
 
+        return await ImportBackupAsync(backup, clearExistingData);
+    }
+
+    public async Task<DataBackup> CreateBackupAsync()
+    {
+        var transactions = await _expenseService.GetTransactionsAsync();
+        var goals = await _goalService.GetGoalsAsync();
+        var scheduledItems = await _scheduleService.GetScheduledAsync();
+
+        return new DataBackup
+        {
+            Transactions = transactions
+                .Select(t => new TransactionBackupItem
+                {
+                    Amount = t.Amount,
+                    Type = t.ParsedType.ToString(),
+                    Date = t.Date,
+                    Note = t.Note,
+                    CategoryName = t.Category?.Name ?? "Other"
+                })
+                .ToList(),
+            Goals = goals.Select(CloneGoal).ToList(),
+            ScheduledItems = scheduledItems.Select(CloneScheduledItem).ToList()
+        };
+    }
+
+    public async Task<BackupImportResult> ImportBackupAsync(DataBackup backup, bool clearExistingData = true)
+    {
         if (clearExistingData)
         {
             await ClearAllDataAsync();
