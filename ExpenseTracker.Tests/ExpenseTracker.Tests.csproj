@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\\Models\\Category.cs" Link="Source\\Models\\Category.cs" />
+    <Compile Include="..\\Models\\ScheduledTransaction.cs" Link="Source\\Models\\ScheduledTransaction.cs" />
+    <Compile Include="..\\Models\\TimeRange.cs" Link="Source\\Models\\TimeRange.cs" />
+    <Compile Include="..\\Models\\Transaction.cs" Link="Source\\Models\\Transaction.cs" />
+    <Compile Include="..\\Models\\TransactionType.cs" Link="Source\\Models\\TransactionType.cs" />
+    <Compile Include="..\\Services\\IExpenseService.cs" Link="Source\\Services\\IExpenseService.cs" />
+    <Compile Include="..\\Services\\IScheduleService.cs" Link="Source\\Services\\IScheduleService.cs" />
+    <Compile Include="..\\ViewModels\\BaseViewModel.cs" Link="Source\\ViewModels\\BaseViewModel.cs" />
+    <Compile Include="..\\ViewModels\\DashboardViewModel.cs" Link="Source\\ViewModels\\DashboardViewModel.cs" />
+    <Compile Include="..\\ViewModels\\ScheduleViewModel.cs" Link="Source\\ViewModels\\ScheduleViewModel.cs" />
+    <Compile Include="..\\ViewModels\\TransactionsViewModel.cs" Link="Source\\ViewModels\\TransactionsViewModel.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>
