@@ -27,10 +27,14 @@
             <VerticalStackLayout Spacing="8">
                 <Label Text="Data"
                        FontAttributes="Bold" />
-                <Button Text="Delete All Transactions"
+                <Button Text="Delete All Data"
                         Clicked="OnDeleteAllClicked"
                         BackgroundColor="#F44336"
                         TextColor="White" />
+                <Button Text="Export Backup"
+                        Clicked="OnExportBackupClicked" />
+                <Button Text="Import Backup"
+                        Clicked="OnImportBackupClicked" />
             </VerticalStackLayout>
 
         </VerticalStackLayout>

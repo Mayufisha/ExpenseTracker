@@ -26,6 +26,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IExpenseService>(_ => new SQLiteExpenseService(dbPath));
         builder.Services.AddSingleton<IGoalService>(_ => new SQLiteGoalService(dbPath));
         builder.Services.AddSingleton<IScheduleService>(_ => new SQLiteScheduleService(dbPath));
+        builder.Services.AddSingleton<IBackupService, DataBackupService>();
 
         builder.Services.AddSingleton<DashboardViewModel>();
         builder.Services.AddSingleton<TransactionsViewModel>();

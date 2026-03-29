@@ -4,12 +4,12 @@ namespace ExpenseTracker.Views;
 
 public partial class SettingsPage : ContentPage
 {
-    private readonly IExpenseService _expenseService;
+    private readonly IBackupService _backupService;
 
-    public SettingsPage(IExpenseService expenseService)
+    public SettingsPage(IBackupService backupService)
     {
         InitializeComponent();
-        _expenseService = expenseService;
+        _backupService = backupService;
 
         LoadThemePreference();
     }
@@ -38,7 +38,7 @@ public partial class SettingsPage : ContentPage
                 };
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             ThemePicker.SelectedIndex = 0;
         }
@@ -66,7 +66,7 @@ public partial class SettingsPage : ContentPage
                     break;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
         }
     }
@@ -75,7 +75,7 @@ public partial class SettingsPage : ContentPage
     {
         var confirm = await DisplayAlert(
             "Delete All",
-            "Are you sure you want to delete all transactions? This cannot be undone.",
+            "Are you sure you want to delete all transactions, goals, and scheduled items? This cannot be undone.",
             "Yes", "No");
 
         if (!confirm) return;
@@ -88,19 +88,108 @@ public partial class SettingsPage : ContentPage
                 button.Text = "Deleting...";
             }
 
-            await _expenseService.ClearAllTransactionsAsync();
-            await DisplayAlert("Done", "All transactions have been deleted.", "OK");
+            await _backupService.ClearAllDataAsync();
+            await DisplayAlert("Done", "All data has been deleted.", "OK");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            await DisplayAlert("Error", "Failed to delete transactions. Please try again.", "OK");
+            await DisplayAlert("Error", "Failed to delete data. Please try again.", "OK");
         }
         finally
         {
             if (sender is Button button)
             {
                 button.IsEnabled = true;
-                button.Text = "Delete All Transactions";
+                button.Text = "Delete All Data";
+            }
+        }
+    }
+
+    async void OnExportBackupClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            if (sender is Button button)
+            {
+                button.IsEnabled = false;
+                button.Text = "Exporting...";
+            }
+
+            var path = await _backupService.ExportBackupAsync(FileSystem.CacheDirectory);
+            await Share.Default.RequestAsync(new ShareFileRequest
+            {
+                Title = "ExpenseTracker Backup",
+                File = new ShareFile(path)
+            });
+        }
+        catch (Exception)
+        {
+            await DisplayAlert("Error", "Failed to export backup.", "OK");
+        }
+        finally
+        {
+            if (sender is Button button)
+            {
+                button.IsEnabled = true;
+                button.Text = "Export Backup";
+            }
+        }
+    }
+
+    async void OnImportBackupClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            var file = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Choose backup file",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    { DevicePlatform.WinUI, new[] { ".json" } },
+                    { DevicePlatform.Android, new[] { "application/json", "text/json" } },
+                    { DevicePlatform.iOS, new[] { "public.json" } },
+                    { DevicePlatform.MacCatalyst, new[] { "public.json" } }
+                })
+            });
+
+            if (file == null)
+            {
+                return;
+            }
+
+            var confirm = await DisplayAlert(
+                "Import Backup",
+                "Importing a backup will replace your existing transactions, goals, and scheduled items. Continue?",
+                "Import",
+                "Cancel");
+
+            if (!confirm)
+            {
+                return;
+            }
+
+            if (sender is Button button)
+            {
+                button.IsEnabled = false;
+                button.Text = "Importing...";
+            }
+
+            var result = await _backupService.ImportBackupAsync(file.FullPath, clearExistingData: true);
+            await DisplayAlert(
+                "Import Complete",
+                $"Transactions: {result.ImportedTransactions}\nGoals: {result.ImportedGoals}\nScheduled items: {result.ImportedScheduledItems}",
+                "OK");
+        }
+        catch (Exception)
+        {
+            await DisplayAlert("Error", "Failed to import backup file.", "OK");
+        }
+        finally
+        {
+            if (sender is Button button)
+            {
+                button.IsEnabled = true;
+                button.Text = "Import Backup";
             }
         }
     }
