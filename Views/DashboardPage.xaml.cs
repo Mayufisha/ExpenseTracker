@@ -19,6 +19,9 @@ public partial class DashboardPage : ContentPage
     {
         base.OnAppearing();
         await _viewModel.LoadAsync();
+        var isDark = RequestedTheme == AppTheme.Dark;
+        var chartLabelColor = isDark ? SKColors.LightGray : SKColors.Gray;
+        var chartValueColor = isDark ? SKColors.White : SKColors.Black;
 
         var entries = new[]
         {
@@ -27,32 +30,32 @@ public partial class DashboardPage : ContentPage
                 Label = "Income",
                 ValueLabel = _viewModel.TotalIncome.ToString("0"),
                 Color = SKColor.Parse("#16A34A"),
-                TextColor = SKColors.Gray,
-                ValueLabelColor = SKColors.Black
+                TextColor = chartLabelColor,
+                ValueLabelColor = chartValueColor
             },
             new ChartEntry((float)Math.Max(0, _viewModel.TotalExpense))
             {
                 Label = "Expenses",
                 ValueLabel = _viewModel.TotalExpense.ToString("0"),
                 Color = SKColor.Parse("#DC2626"),
-                TextColor = SKColors.Gray,
-                ValueLabelColor = SKColors.Black
+                TextColor = chartLabelColor,
+                ValueLabelColor = chartValueColor
             },
             new ChartEntry((float)Math.Max(0, _viewModel.TotalAssets))
             {
                 Label = "Assets",
                 ValueLabel = _viewModel.TotalAssets.ToString("0"),
                 Color = SKColor.Parse("#2563EB"),
-                TextColor = SKColors.Gray,
-                ValueLabelColor = SKColors.Black
+                TextColor = chartLabelColor,
+                ValueLabelColor = chartValueColor
             },
             new ChartEntry((float)Math.Max(0, _viewModel.TotalLiabilities))
             {
                 Label = "Liabilities",
                 ValueLabel = _viewModel.TotalLiabilities.ToString("0"),
                 Color = SKColor.Parse("#EA580C"),
-                TextColor = SKColors.Gray,
-                ValueLabelColor = SKColors.Black
+                TextColor = chartLabelColor,
+                ValueLabelColor = chartValueColor
             }
         };
 
@@ -62,8 +65,8 @@ public partial class DashboardPage : ContentPage
                 Label = point.Label,
                 ValueLabel = point.NetCashFlow.ToString("0"),
                 Color = point.NetCashFlow >= 0 ? SKColor.Parse("#16A34A") : SKColor.Parse("#DC2626"),
-                ValueLabelColor = SKColors.Black,
-                TextColor = SKColors.Gray
+                ValueLabelColor = chartValueColor,
+                TextColor = chartLabelColor
             })
             .ToList();
 
