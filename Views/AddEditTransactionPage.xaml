@@ -30,7 +30,7 @@
                     HeightRequest="80" />
 
             <Label x:Name="ErrorLabel"
-                   TextColor="Red"
+                   TextColor="{AppThemeBinding Light={StaticResource Danger}, Dark={StaticResource DangerDark}}"
                    IsVisible="False" />
 
             <Grid ColumnDefinitions="*,*"
@@ -47,8 +47,7 @@
             <Button x:Name="DeleteButton"
                     Text="Delete Transaction"
                     Clicked="OnDeleteTransaction"
-                    BackgroundColor="#F44336"
-                    TextColor="White" />
+                    Style="{StaticResource DangerButton}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

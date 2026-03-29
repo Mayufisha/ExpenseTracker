@@ -37,8 +37,7 @@
                 <Label Text="Account &amp; Cloud Sync"
                        FontAttributes="Bold" />
                 <Label Text="Use the same account and server on each device to sync data."
-                       FontSize="12"
-                       TextColor="Gray" />
+                       Style="{StaticResource MutedLabel}" />
                 <Entry x:Name="ServerUrlEntry"
                        Placeholder="Server URL (e.g. https://api.example.com)" />
                 <Entry x:Name="EmailEntry"
@@ -66,8 +65,7 @@
                 <Button Text="Sign Out"
                         Clicked="OnSignOutClicked" />
                 <Label x:Name="AccountStatusLabel"
-                       TextColor="Gray"
-                       FontSize="12" />
+                       Style="{StaticResource MutedLabel}" />
             </VerticalStackLayout>
 
         </VerticalStackLayout>

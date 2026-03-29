@@ -11,7 +11,7 @@
                    FontSize="34"
                    FontAttributes="Bold" />
             <Label Text="Sign in to sync your data across devices."
-                   TextColor="Gray" />
+                   Style="{StaticResource MutedLabel}" />
 
             <Entry x:Name="ServerUrlEntry"
                    Placeholder="Server URL (e.g. https://api.example.com)" />
@@ -33,8 +33,7 @@
 
             <Button Text="Just trying it"
                     Clicked="OnGuestClicked"
-                    BackgroundColor="Transparent"
-                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource Secondary}}" />
+                    Style="{StaticResource TextButton}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

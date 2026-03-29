@@ -132,7 +132,7 @@
                         <Label Text="No transactions yet."
                                FontAttributes="Bold" />
                         <Label Text="Add your first record from the Transactions tab."
-                               TextColor="Gray" />
+                               Style="{StaticResource MutedLabel}" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
@@ -150,7 +150,7 @@
                                        Grid.Column="0"
                                        Text="{Binding Type}"
                                        FontSize="12"
-                                       TextColor="Gray" />
+                                       Style="{StaticResource MutedLabel}" />
                                 <Label Grid.RowSpan="2"
                                        Grid.Column="1"
                                        VerticalOptions="Center"

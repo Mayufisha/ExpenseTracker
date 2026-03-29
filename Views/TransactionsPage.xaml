@@ -35,7 +35,7 @@
                     <Label Text="No transactions yet."
                            FontAttributes="Bold" />
                     <Label Text="Tap + to add your first transaction."
-                           TextColor="Gray" />
+                           Style="{StaticResource MutedLabel}" />
                 </VerticalStackLayout>
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
@@ -44,7 +44,7 @@
                         <SwipeView.RightItems>
                             <SwipeItems Mode="Reveal">
                                 <SwipeItem Text="Delete"
-                                           BackgroundColor="Red"
+                                           Style="{StaticResource DangerSwipeItem}"
                                            Invoked="OnDeleteSwipeInvoked" />
                             </SwipeItems>
                         </SwipeView.RightItems>
@@ -62,7 +62,7 @@
                                        Grid.Column="0"
                                        Text="{Binding Date, StringFormat='{0:yyyy-MM-dd}'}"
                                        FontSize="12"
-                                       TextColor="Gray" />
+                                       Style="{StaticResource MutedLabel}" />
                                 <Label Grid.RowSpan="2"
                                        Grid.Column="1"
                                        VerticalOptions="Center"

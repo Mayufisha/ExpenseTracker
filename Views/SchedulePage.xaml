@@ -34,7 +34,7 @@
                     <Label Text="No scheduled items yet."
                            FontAttributes="Bold" />
                     <Label Text="Tap + to schedule an upcoming payment."
-                           TextColor="Gray" />
+                           Style="{StaticResource MutedLabel}" />
                 </VerticalStackLayout>
             </CollectionView.EmptyView>
 
@@ -45,7 +45,7 @@
                         <SwipeView.RightItems>
                             <SwipeItems Mode="Reveal">
                                 <SwipeItem Text="Delete"
-                                           BackgroundColor="Red"
+                                           Style="{StaticResource DangerSwipeItem}"
                                            Invoked="OnDeleteSwipeInvoked" />
                             </SwipeItems>
                         </SwipeView.RightItems>
@@ -66,7 +66,7 @@
                                        Grid.Column="0"
                                        Text="{Binding ScheduledDate, StringFormat='{0:yyyy-MM-dd}'}"
                                        FontSize="12"
-                                       TextColor="Gray" />
+                                       Style="{StaticResource MutedLabel}" />
 
                                 <Label Grid.RowSpan="2"
                                        Grid.Column="1"

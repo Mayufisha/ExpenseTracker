@@ -16,7 +16,7 @@ public partial class App : Application
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        var firstPage = _accountService.Session.IsSignedIn
+        Page firstPage = _accountService.Session.IsSignedIn
             ? new AppShell()
             : new NavigationPage(new Views.AuthPage(_accountService));
 

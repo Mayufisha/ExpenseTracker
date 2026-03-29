@@ -27,6 +27,10 @@
     <Color x:Key="Gray600">#404040</Color>
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
+    <Color x:Key="MutedTextLight">#6B7280</Color>
+    <Color x:Key="MutedTextDark">#9CA3AF</Color>
+    <Color x:Key="Danger">#DC2626</Color>
+    <Color x:Key="DangerDark">#F87171</Color>
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
