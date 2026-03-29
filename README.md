@@ -4,23 +4,35 @@ ExpenseTracker is a cross-platform personal finance app built with .NET MAUI, SQ
 
 ## Features
 
-- Dashboard with Income, Expenses, Assets, Liabilities, Net Cashflow, and Net Worth
-- Dashboard charts: 6-month cashflow trend (line) and composition (donut)
-- Transactions: add, edit, delete, and monthly view
-- Goals: create, edit, delete, and monthly view by deadline
-- Schedule: add, delete, and monthly view
+- Startup auth gate:
+- If an account session exists, users enter the app directly.
+- If no session exists, users see login/signup first, with a `Just trying it` guest option.
+- Dashboard:
+- Tracks Income, Expenses, Assets, Liabilities, Net Cashflow, and Net Worth.
+- Includes a 6-month net cashflow trend (line chart) and a financial composition chart (donut).
+- Transactions:
+- Add, edit, delete.
+- Monthly view/filter.
+- Goals:
+- Add, edit, delete.
+- Monthly view/filter by deadline month.
+- Schedule:
+- Add, delete.
+- Monthly view/filter.
 - Settings:
-- Theme preference (System/Light/Dark)
-- Export backup to JSON
-- Import backup from JSON
-- Account sign-up/sign-in and cloud upload/download sync
+- Theme preference (System/Light/Dark).
+- Export backup to JSON.
+- Import backup from JSON.
+- Account sync controls (register, sign in, sign out, upload sync, download sync).
+- Theme consistency:
+- Shared color/style resources are applied across screens, not just on one page.
 
 ## Architecture
 
-- `Models/` data and enums
-- `Services/` SQLite persistence, backup, and account sync services
-- `ViewModels/` page logic
-- `Views/` XAML pages and UI interactions
+- `Models/` entities and supporting DTOs/enums
+- `Services/` SQLite persistence, backup, and account/cloud sync integration
+- `ViewModels/` MVVM page state and filtering logic
+- `Views/` XAML pages and UI interaction code-behind
 
 ## Tech Stack
 
@@ -30,19 +42,19 @@ ExpenseTracker is a cross-platform personal finance app built with .NET MAUI, SQ
 
 ## Data Storage
 
-- Local database file: `expenses.db3`
-- Backup file format: JSON
-- Cloud sync uses a backend API with account auth (see below)
+- Local DB: `expenses.db3`
+- Backup format: JSON (`DataBackup`)
+- Optional cloud sync via authenticated backend API
 
 ## Cloud Sync API Contract
 
-The app expects these authenticated endpoints on your server:
+The app expects these endpoints on your backend:
 
-- `POST /api/account/register` with `{ "email": "...", "password": "..." }`
-- `POST /api/account/login` with `{ "email": "...", "password": "..." }`
-  - Response: `{ "token": "..." }`
-- `POST /api/sync/push` with `DataBackup` payload and `Authorization: Bearer <token>`
-- `GET /api/sync/pull` returns `DataBackup` with `Authorization: Bearer <token>`
+- `POST /api/account/register` body: `{ "email": "...", "password": "..." }`
+- `POST /api/account/login` body: `{ "email": "...", "password": "..." }`
+- Login response: `{ "token": "..." }`
+- `POST /api/sync/push` body: `DataBackup` with `Authorization: Bearer <token>`
+- `GET /api/sync/pull` returns: `DataBackup` with `Authorization: Bearer <token>`
 
 ## Getting Started
 
@@ -50,7 +62,7 @@ The app expects these authenticated endpoints on your server:
 
 - .NET 9 SDK
 - MAUI workload
-- Visual Studio 2022 (or newer) with MAUI support
+- Visual Studio 2022+ with MAUI support
 
 ### Build
 
@@ -59,9 +71,13 @@ dotnet restore
 dotnet build ExpenseTracker.sln
 ```
 
-Run on a target device/emulator from Visual Studio or with MAUI CLI commands.
+### Test
 
-## Current Scope and Notes
+```bash
+dotnet test ExpenseTracker.Tests/ExpenseTracker.Tests.csproj
+```
 
-- Cloud sync requires your backend API URL in Settings
-- Test coverage focuses on viewmodel filtering and dashboard aggregates
+## Notes
+
+- Cloud sync requires setting a backend server URL in the app.
+- Existing tests focus on core viewmodel filtering and dashboard aggregate logic.
