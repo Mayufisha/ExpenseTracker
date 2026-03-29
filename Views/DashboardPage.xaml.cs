@@ -22,49 +22,70 @@ public partial class DashboardPage : ContentPage
 
         var entries = new[]
         {
-            new ChartEntry((float)_viewModel.TotalIncome)
+            new ChartEntry((float)Math.Max(0, _viewModel.TotalIncome))
             {
                 Label = "Income",
                 ValueLabel = _viewModel.TotalIncome.ToString("0"),
-                Color = SKColor.Parse("#4CAF50"),
+                Color = SKColor.Parse("#16A34A"),
                 TextColor = SKColors.Gray,
                 ValueLabelColor = SKColors.Black
             },
-            new ChartEntry((float)_viewModel.TotalExpense)
+            new ChartEntry((float)Math.Max(0, _viewModel.TotalExpense))
             {
                 Label = "Expenses",
                 ValueLabel = _viewModel.TotalExpense.ToString("0"),
-                Color = SKColor.Parse("#F44336"),
+                Color = SKColor.Parse("#DC2626"),
                 TextColor = SKColors.Gray,
                 ValueLabelColor = SKColors.Black
             },
-            new ChartEntry((float)_viewModel.TotalAssets)
+            new ChartEntry((float)Math.Max(0, _viewModel.TotalAssets))
             {
                 Label = "Assets",
                 ValueLabel = _viewModel.TotalAssets.ToString("0"),
-                Color = SKColor.Parse("#2196F3"),
+                Color = SKColor.Parse("#2563EB"),
                 TextColor = SKColors.Gray,
                 ValueLabelColor = SKColors.Black
             },
-            new ChartEntry((float)_viewModel.TotalLiabilities)
+            new ChartEntry((float)Math.Max(0, _viewModel.TotalLiabilities))
             {
                 Label = "Liabilities",
                 ValueLabel = _viewModel.TotalLiabilities.ToString("0"),
-                Color = SKColor.Parse("#FF9800"),
+                Color = SKColor.Parse("#EA580C"),
                 TextColor = SKColors.Gray,
                 ValueLabelColor = SKColors.Black
             }
         };
 
-        DashboardChart.Chart = new BarChart
+        var trendEntries = _viewModel.MonthlyNetPoints
+            .Select(point => new ChartEntry((float)point.NetCashFlow)
+            {
+                Label = point.Label,
+                ValueLabel = point.NetCashFlow.ToString("0"),
+                Color = point.NetCashFlow >= 0 ? SKColor.Parse("#16A34A") : SKColor.Parse("#DC2626"),
+                ValueLabelColor = SKColors.Black,
+                TextColor = SKColors.Gray
+            })
+            .ToList();
+
+        NetFlowChart.Chart = new LineChart
         {
-            Entries = entries,
-            //Orientation = Orientation.Vertical,         
-            LabelOrientation = Orientation.Horizontal,   
+            Entries = trendEntries,
+            LineMode = LineMode.Straight,
+            LineSize = 8,
+            PointMode = PointMode.Circle,
+            PointSize = 22,
+            LabelOrientation = Orientation.Horizontal,
             ValueLabelOrientation = Orientation.Vertical,
             LabelTextSize = 24,
-            BackgroundColor = SKColors.Transparent,
-            Margin = 20
+            BackgroundColor = SKColors.Transparent
+        };
+
+        CompositionChart.Chart = new DonutChart
+        {
+            Entries = entries,
+            HoleRadius = 0.55f,
+            LabelTextSize = 24,
+            BackgroundColor = SKColors.Transparent
         };
     }
 }

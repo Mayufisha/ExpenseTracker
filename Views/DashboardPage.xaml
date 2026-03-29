@@ -9,10 +9,10 @@
     x:DataType="viewmodels:DashboardViewModel">
 
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="16">
+        <VerticalStackLayout Padding="20" Spacing="16">
 
             <Label Text="Dashboard"
-                   FontSize="28"
+                   FontSize="32"
                    FontAttributes="Bold" />
 
             <Grid ColumnDefinitions="*,*"
@@ -22,7 +22,8 @@
 
                 <Border Grid.Row="0" Grid.Column="0"
                         StrokeShape="RoundRectangle 16"
-                        Padding="12">
+                        Padding="12"
+                        BackgroundColor="#E8F7F0">
                     <VerticalStackLayout>
                         <Label Text="Income" FontAttributes="Bold" />
                         <Label Text="{Binding TotalIncome, StringFormat='${0:F2}'}"
@@ -33,7 +34,8 @@
 
                 <Border Grid.Row="0" Grid.Column="1"
                         StrokeShape="RoundRectangle 16"
-                        Padding="12">
+                        Padding="12"
+                        BackgroundColor="#FDECEC">
                     <VerticalStackLayout>
                         <Label Text="Expenses" FontAttributes="Bold" />
                         <Label Text="{Binding TotalExpense, StringFormat='${0:F2}'}"
@@ -44,7 +46,8 @@
 
                 <Border Grid.Row="1" Grid.ColumnSpan="2"
                         StrokeShape="RoundRectangle 16"
-                        Padding="12">
+                        Padding="12"
+                        BackgroundColor="#EAF1FF">
                     <VerticalStackLayout>
                         <Label Text="Assets" FontAttributes="Bold" />
                         <Label Text="{Binding TotalAssets, StringFormat='${0:F2}'}"
@@ -55,7 +58,8 @@
 
                 <Border Grid.Row="2" Grid.Column="0"
                         StrokeShape="RoundRectangle 16"
-                        Padding="12">
+                        Padding="12"
+                        BackgroundColor="#FFF3E6">
                     <VerticalStackLayout>
                         <Label Text="Liabilities" FontAttributes="Bold" />
                         <Label Text="{Binding TotalLiabilities, StringFormat='${0:F2}'}"
@@ -66,7 +70,8 @@
 
                 <Border Grid.Row="2" Grid.Column="1"
                         StrokeShape="RoundRectangle 16"
-                        Padding="12">
+                        Padding="12"
+                        BackgroundColor="#F3F4F6">
                     <VerticalStackLayout>
                         <Label Text="Net Cashflow" FontAttributes="Bold" />
                         <Label Text="{Binding NetCashFlow, StringFormat='${0:F2}'}"
@@ -76,25 +81,39 @@
                 </Border>
             </Grid>
 
-            <Frame Margin="16"
-                Padding="12"
-                BackgroundColor="White"
-                CornerRadius="16"
-                HasShadow="True">
+            <Frame Padding="12"
+                   BackgroundColor="White"
+                   CornerRadius="16"
+                   HasShadow="True">
 
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="Income, Expenses, Assets, Liabilities"
-               FontSize="18"
-               FontAttributes="Bold"
-               TextColor="Black" />
+                    <Label Text="6-Month Net Cashflow Trend"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="Black" />
 
-                    <chart:ChartView x:Name="DashboardChart"
-                         HeightRequest="260" />
+                    <chart:ChartView x:Name="NetFlowChart"
+                                     HeightRequest="220" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <Frame Padding="12"
+                   BackgroundColor="White"
+                   CornerRadius="16"
+                   HasShadow="True">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Financial Composition"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="Black" />
+                    <chart:ChartView x:Name="CompositionChart"
+                                     HeightRequest="220" />
                 </VerticalStackLayout>
             </Frame>
 
             <Border StrokeShape="RoundRectangle 16"
-                    Padding="12">
+                    Padding="12"
+                    BackgroundColor="#ECFDF3">
                 <VerticalStackLayout>
                     <Label Text="Net Worth" FontAttributes="Bold" />
                     <Label Text="{Binding NetWorth, StringFormat='${0:F2}'}"

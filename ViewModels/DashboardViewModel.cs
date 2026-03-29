@@ -9,6 +9,7 @@ public class DashboardViewModel : BaseViewModel
     private readonly IExpenseService _expenseService;
 
     public ObservableCollection<Transaction> Transactions { get; } = new();
+    public IReadOnlyList<MonthlyNetPoint> MonthlyNetPoints { get; private set; } = Array.Empty<MonthlyNetPoint>();
 
     decimal totalIncome;
     public decimal TotalIncome
@@ -75,7 +76,33 @@ public class DashboardViewModel : BaseViewModel
 
         NetCashFlow = TotalIncome - TotalExpense;
         NetWorth = TotalAssets - TotalLiabilities;
+        MonthlyNetPoints = BuildMonthlyNetPoints(Transactions, 6);
+        OnPropertyChanged(nameof(MonthlyNetPoints));
 
         IsBusy = false;
+    }
+
+    private static IReadOnlyList<MonthlyNetPoint> BuildMonthlyNetPoints(IEnumerable<Transaction> transactions, int monthCount)
+    {
+        var months = Enumerable.Range(0, monthCount)
+            .Select(offset => DateTime.Today.AddMonths(-monthCount + 1 + offset))
+            .Select(d => new DateTime(d.Year, d.Month, 1))
+            .ToList();
+
+        var result = new List<MonthlyNetPoint>(monthCount);
+        foreach (var month in months)
+        {
+            var end = month.AddMonths(1);
+            var monthItems = transactions.Where(t => t.Date.Date >= month && t.Date.Date < end).ToList();
+            var income = monthItems.Where(t => t.ParsedType == TransactionType.Income).Sum(t => t.Amount);
+            var expense = monthItems.Where(t => t.ParsedType == TransactionType.Expense).Sum(t => t.Amount);
+            result.Add(new MonthlyNetPoint
+            {
+                Label = month.ToString("MMM"),
+                NetCashFlow = income - expense
+            });
+        }
+
+        return result;
     }
 }
