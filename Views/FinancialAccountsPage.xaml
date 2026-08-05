@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ExpenseTracker.Views.FinancialAccountsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewmodels="clr-namespace:ExpenseTracker.ViewModels"
+    xmlns:models="clr-namespace:ExpenseTracker.Models"
+    x:DataType="viewmodels:FinancialAccountsViewModel">
+
+    <Grid>
+        <VerticalStackLayout Padding="16" Spacing="14">
+            <Label Text="Banks &amp; Credit Cards"
+                   FontSize="28"
+                   FontAttributes="Bold" />
+            <Label Text="Attach CSV statements to import transactions. PDF statements are stored for reference."
+                   Style="{StaticResource MutedLabel}" />
+
+            <CollectionView ItemsSource="{Binding Accounts}"
+                            SelectionMode="Single"
+                            SelectionChanged="OnSelectionChanged">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="16" Spacing="8">
+                        <Label Text="No financial accounts yet."
+                               FontAttributes="Bold" />
+                        <Label Text="Tap + to add your bank or credit card."
+                               Style="{StaticResource MutedLabel}" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:FinancialAccount">
+                        <SwipeView>
+                            <SwipeView.RightItems>
+                                <SwipeItems Mode="Reveal">
+                                    <SwipeItem Text="Delete"
+                                               Style="{StaticResource DangerSwipeItem}"
+                                               Invoked="OnDeleteSwipeInvoked" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+                            <Border StrokeShape="RoundRectangle 14"
+                                    Padding="14"
+                                    Margin="0,5">
+                                <Grid RowDefinitions="Auto,Auto,Auto"
+                                      ColumnDefinitions="*,Auto">
+                                    <Label Grid.Row="0"
+                                           Grid.Column="0"
+                                           Text="{Binding DisplayName}"
+                                           FontAttributes="Bold" />
+                                    <Label Grid.Row="1"
+                                           Grid.Column="0"
+                                           Text="{Binding AccountType}"
+                                           Style="{StaticResource MutedLabel}" />
+                                    <Label Grid.Row="2"
+                                           Grid.Column="0"
+                                           Text="{Binding StatementCount, StringFormat='Statements: {0}'}"
+                                           Style="{StaticResource MutedLabel}" />
+                                    <Button Grid.RowSpan="3"
+                                            Grid.Column="1"
+                                            Text="Attach"
+                                            CommandParameter="{Binding .}"
+                                            Clicked="OnAttachStatementClicked" />
+                                </Grid>
+                            </Border>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+
+        <Button Text="+"
+                WidthRequest="56"
+                HeightRequest="56"
+                CornerRadius="28"
+                FontSize="24"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="24"
+                Clicked="OnAddClicked" />
+    </Grid>
+</ContentPage>

@@ -42,17 +42,26 @@ public class SQLiteExpenseService : IExpenseService
 
     private async Task EnsureTransactionSchemaAsync()
     {
+        await TryAddColumnAsync("Type TEXT");
+        await TryAddColumnAsync("FinancialAccountId INTEGER NOT NULL DEFAULT 0");
+        await TryAddColumnAsync("InstitutionName TEXT");
+        await TryAddColumnAsync("AccountName TEXT");
+        await TryAddColumnAsync("StatementFileName TEXT");
+
+        await _db.ExecuteAsync(
+            "UPDATE \"Transaction\" SET Type = CASE WHEN IsIncome = 1 THEN 'Income' ELSE 'Expense' END WHERE Type IS NULL OR TRIM(Type) = ''");
+    }
+
+    private async Task TryAddColumnAsync(string columnDefinition)
+    {
         try
         {
-            await _db.ExecuteAsync("ALTER TABLE \"Transaction\" ADD COLUMN Type TEXT");
+            await _db.ExecuteAsync($"ALTER TABLE \"Transaction\" ADD COLUMN {columnDefinition}");
         }
         catch
         {
             // Column already exists.
         }
-
-        await _db.ExecuteAsync(
-            "UPDATE \"Transaction\" SET Type = CASE WHEN IsIncome = 1 THEN 'Income' ELSE 'Expense' END WHERE Type IS NULL OR TRIM(Type) = ''");
     }
 
     public async Task<IReadOnlyList<Category>> GetCategoriesAsync()

@@ -16,9 +16,18 @@ public class Transaction
     public int CategoryId { get; set; }
     public DateTime Date { get; set; }
     public string Note { get; set; } = string.Empty;
+    public int FinancialAccountId { get; set; }
+    public string InstitutionName { get; set; } = string.Empty;
+    public string AccountName { get; set; } = string.Empty;
+    public string StatementFileName { get; set; } = string.Empty;
 
     [Ignore]
     public Category? Category { get; set; }
+
+    [Ignore]
+    public string SourceDisplay => string.IsNullOrWhiteSpace(InstitutionName)
+        ? "Manual entry"
+        : $"{InstitutionName} - {AccountName}";
 
     [Ignore]
     public TransactionType ParsedType

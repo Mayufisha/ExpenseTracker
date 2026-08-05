@@ -8,15 +8,18 @@ public class DataBackupService : IBackupService
     private readonly IExpenseService _expenseService;
     private readonly IGoalService _goalService;
     private readonly IScheduleService _scheduleService;
+    private readonly IFinancialAccountService _financialAccountService;
 
     public DataBackupService(
         IExpenseService expenseService,
         IGoalService goalService,
-        IScheduleService scheduleService)
+        IScheduleService scheduleService,
+        IFinancialAccountService financialAccountService)
     {
         _expenseService = expenseService;
         _goalService = goalService;
         _scheduleService = scheduleService;
+        _financialAccountService = financialAccountService;
     }
 
     public async Task<string> ExportBackupAsync(string outputDirectory)
@@ -51,6 +54,7 @@ public class DataBackupService : IBackupService
         var transactions = await _expenseService.GetTransactionsAsync();
         var goals = await _goalService.GetGoalsAsync();
         var scheduledItems = await _scheduleService.GetScheduledAsync();
+        var financialAccounts = await _financialAccountService.GetAccountsAsync();
 
         return new DataBackup
         {
@@ -61,9 +65,19 @@ public class DataBackupService : IBackupService
                     Type = t.ParsedType.ToString(),
                     Date = t.Date,
                     Note = t.Note,
-                    CategoryName = t.Category?.Name ?? "Other"
+                    CategoryName = t.Category?.Name ?? "Other",
+                    InstitutionName = t.InstitutionName,
+                    AccountName = t.AccountName,
+                    StatementFileName = t.StatementFileName
                 })
                 .ToList(),
+            FinancialAccounts = financialAccounts.Select(a => new FinancialAccountBackupItem
+            {
+                InstitutionName = a.InstitutionName,
+                AccountName = a.AccountName,
+                AccountType = a.AccountType,
+                LastFour = a.LastFour
+            }).ToList(),
             Goals = goals.Select(CloneGoal).ToList(),
             ScheduledItems = scheduledItems.Select(CloneScheduledItem).ToList()
         };
@@ -84,6 +98,19 @@ public class DataBackupService : IBackupService
         var fallbackCategory = categories.FirstOrDefault(c => c.Name.Equals("Other", StringComparison.OrdinalIgnoreCase))
             ?? categories.First();
 
+        foreach (var account in backup.FinancialAccounts)
+        {
+            await _financialAccountService.AddOrUpdateAccountAsync(new FinancialAccount
+            {
+                InstitutionName = account.InstitutionName,
+                AccountName = account.AccountName,
+                AccountType = account.AccountType,
+                LastFour = account.LastFour
+            });
+        }
+
+        var importedAccounts = await _financialAccountService.GetAccountsAsync();
+
         var importedTransactions = 0;
         foreach (var item in backup.Transactions)
         {
@@ -97,7 +124,13 @@ public class DataBackupService : IBackupService
                 Date = item.Date,
                 Note = item.Note ?? string.Empty,
                 CategoryId = category.Id,
-                Type = item.Type
+                Type = item.Type,
+                InstitutionName = item.InstitutionName,
+                AccountName = item.AccountName,
+                StatementFileName = item.StatementFileName,
+                FinancialAccountId = importedAccounts.FirstOrDefault(a =>
+                    a.InstitutionName.Equals(item.InstitutionName, StringComparison.OrdinalIgnoreCase)
+                    && a.AccountName.Equals(item.AccountName, StringComparison.OrdinalIgnoreCase))?.Id ?? 0
             };
 
             if (!Enum.TryParse<TransactionType>(transaction.Type, true, out var parsed))
@@ -141,6 +174,7 @@ public class DataBackupService : IBackupService
         await _expenseService.ClearAllTransactionsAsync();
         await _goalService.ClearAllAsync();
         await _scheduleService.ClearAllAsync();
+        await _financialAccountService.ClearAllAsync();
     }
 
     private static Goal CloneGoal(Goal goal)

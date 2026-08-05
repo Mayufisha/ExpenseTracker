@@ -26,6 +26,11 @@ public static class MauiProgram
         builder.Services.AddSingleton<IExpenseService>(_ => new SQLiteExpenseService(dbPath));
         builder.Services.AddSingleton<IGoalService>(_ => new SQLiteGoalService(dbPath));
         builder.Services.AddSingleton<IScheduleService>(_ => new SQLiteScheduleService(dbPath));
+        builder.Services.AddSingleton<IFinancialAccountService>(_ => new SQLiteFinancialAccountService(dbPath));
+        builder.Services.AddSingleton<IStatementImportService>(provider => new StatementImportService(
+            provider.GetRequiredService<IFinancialAccountService>(),
+            provider.GetRequiredService<IExpenseService>(),
+            Path.Combine(FileSystem.AppDataDirectory, "Statements")));
         builder.Services.AddSingleton<IBackupService, DataBackupService>();
         builder.Services.AddSingleton<IAccountService, AccountService>();
 
@@ -33,11 +38,13 @@ public static class MauiProgram
         builder.Services.AddSingleton<TransactionsViewModel>();
         builder.Services.AddSingleton<GoalsViewModel>();
         builder.Services.AddSingleton<ScheduleViewModel>();
+        builder.Services.AddSingleton<FinancialAccountsViewModel>();
 
         builder.Services.AddSingleton<DashboardPage>();
         builder.Services.AddSingleton<TransactionsPage>();
         builder.Services.AddSingleton<GoalsPage>();
         builder.Services.AddSingleton<SchedulePage>();
+        builder.Services.AddSingleton<FinancialAccountsPage>();
         builder.Services.AddSingleton<SettingsPage>();
         builder.Services.AddTransient<AddEditTransactionPage>();
 

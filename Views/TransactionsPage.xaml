@@ -7,23 +7,21 @@
     xmlns:models="clr-namespace:ExpenseTracker.Models"
     x:DataType="viewmodels:TransactionsViewModel">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <HorizontalStackLayout Grid.Row="0"
-                               Padding="16,8"
-                               Spacing="8">
-            <Label Text="Month:"
-                   VerticalOptions="Center" />
-
-            <Picker ItemsSource="{Binding MonthFilters}"
+    <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0"
+              Padding="16,8"
+              ColumnDefinitions="*,*"
+              ColumnSpacing="10">
+            <Picker Grid.Column="0"
+                    Title="Month"
+                    ItemsSource="{Binding MonthFilters}"
                     ItemDisplayBinding="{Binding Label}"
-                    SelectedItem="{Binding SelectedMonthFilter}"
-                    HorizontalOptions="FillAndExpand" />
-        </HorizontalStackLayout>
+                    SelectedItem="{Binding SelectedMonthFilter}" />
+            <Picker Grid.Column="1"
+                    Title="Institution"
+                    ItemsSource="{Binding InstitutionFilters}"
+                    SelectedItem="{Binding SelectedInstitution}" />
+        </Grid>
 
         <CollectionView Grid.Row="1"
                         ItemsSource="{Binding Transactions}"
@@ -32,9 +30,9 @@
                         SelectionChanged="OnSelectionChanged">
             <CollectionView.EmptyView>
                 <VerticalStackLayout Padding="16" Spacing="8">
-                    <Label Text="No transactions yet."
+                    <Label Text="No transactions found."
                            FontAttributes="Bold" />
-                    <Label Text="Tap + to add your first transaction."
+                    <Label Text="Add a transaction or import a statement from Accounts."
                            Style="{StaticResource MutedLabel}" />
                 </VerticalStackLayout>
             </CollectionView.EmptyView>
@@ -53,7 +51,7 @@
                                 Padding="12"
                                 Margin="0,4">
                             <Grid ColumnDefinitions="*,Auto"
-                                  RowDefinitions="Auto,Auto">
+                                  RowDefinitions="Auto,Auto,Auto">
                                 <Label Grid.Row="0"
                                        Grid.Column="0"
                                        Text="{Binding Note}"
@@ -61,9 +59,12 @@
                                 <Label Grid.Row="1"
                                        Grid.Column="0"
                                        Text="{Binding Date, StringFormat='{0:yyyy-MM-dd}'}"
-                                       FontSize="12"
                                        Style="{StaticResource MutedLabel}" />
-                                <Label Grid.RowSpan="2"
+                                <Label Grid.Row="2"
+                                       Grid.Column="0"
+                                       Text="{Binding SourceDisplay}"
+                                       Style="{StaticResource MutedLabel}" />
+                                <Label Grid.RowSpan="3"
                                        Grid.Column="1"
                                        VerticalOptions="Center"
                                        Text="{Binding Amount, StringFormat='${0:F2}'}"

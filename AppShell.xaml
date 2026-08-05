@@ -19,6 +19,9 @@
             Title="Schedule"
             ContentTemplate="{DataTemplate views:SchedulePage}" />
         <ShellContent
+            Title="Accounts"
+            ContentTemplate="{DataTemplate views:FinancialAccountsPage}" />
+        <ShellContent
             Title="Settings"
             ContentTemplate="{DataTemplate views:SettingsPage}" />
     </TabBar>
