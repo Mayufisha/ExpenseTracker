@@ -19,6 +19,8 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<SupabaseUrl Condition="'$(SupabaseUrl)' == ''">$(SUPABASE_URL)</SupabaseUrl>
+		<SupabasePublishableKey Condition="'$(SupabasePublishableKey)' == ''">$(SUPABASE_PUBLISHABLE_KEY)</SupabasePublishableKey>
 
 		<!-- Display name -->
 		<ApplicationTitle>ExpenseTracker</ApplicationTitle>
@@ -40,6 +42,17 @@
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>SupabaseUrl</_Parameter1>
+			<_Parameter2>$(SupabaseUrl)</_Parameter2>
+		</AssemblyAttribute>
+		<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+			<_Parameter1>SupabasePublishableKey</_Parameter1>
+			<_Parameter2>$(SupabasePublishableKey)</_Parameter2>
+		</AssemblyAttribute>
+	</ItemGroup>
 
 	<ItemGroup>
 		<!-- App Icon -->

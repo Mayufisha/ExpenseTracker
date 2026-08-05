@@ -2,14 +2,15 @@ using ExpenseTracker.Models;
 
 namespace ExpenseTracker.Services;
 
-public interface IAccountService
+public interface ISupabaseService
 {
     AccountSession Session { get; }
     Task InitializeAsync();
     void SetConfiguration(string projectUrl, string publishableKey);
-    Task RegisterAsync(string email, string password);
+    Task SignUpAsync(string email, string password);
     Task SignInAsync(string email, string password);
     Task SignOutAsync();
-    Task PushToCloudAsync();
-    Task<BackupImportResult> PullFromCloudAsync();
+    Task UpsertBackupAsync(DataBackup backup);
+    Task<DataBackup?> GetBackupAsync();
+    Task<string> UploadStatementAsync(Stream content, string objectPath, string contentType);
 }

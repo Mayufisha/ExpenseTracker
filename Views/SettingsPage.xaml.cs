@@ -163,40 +163,10 @@ public partial class SettingsPage : ContentPage
         }
     }
 
-    async void OnRegisterClicked(object sender, EventArgs e)
-    {
-        try
-        {
-            ApplyServerUrl();
-            await _accountService.RegisterAsync(EmailEntry.Text ?? string.Empty, PasswordEntry.Text ?? string.Empty);
-            await DisplayAlert("Account", "Registration successful. You can sign in now.", "OK");
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Account Error", ex.Message, "OK");
-        }
-    }
-
-    async void OnSignInClicked(object sender, EventArgs e)
-    {
-        try
-        {
-            ApplyServerUrl();
-            await _accountService.SignInAsync(EmailEntry.Text ?? string.Empty, PasswordEntry.Text ?? string.Empty);
-            LoadAccountState();
-            await DisplayAlert("Account", "Signed in successfully.", "OK");
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Account Error", ex.Message, "OK");
-        }
-    }
-
     async void OnUploadSyncClicked(object sender, EventArgs e)
     {
         try
         {
-            ApplyServerUrl();
             await _accountService.PushToCloudAsync();
             await DisplayAlert("Cloud Sync", "Your local data was uploaded successfully.", "OK");
         }
@@ -210,7 +180,6 @@ public partial class SettingsPage : ContentPage
     {
         try
         {
-            ApplyServerUrl();
             var result = await _accountService.PullFromCloudAsync();
             await DisplayAlert(
                 "Cloud Sync",
@@ -223,9 +192,9 @@ public partial class SettingsPage : ContentPage
         }
     }
 
-    void OnSignOutClicked(object sender, EventArgs e)
+    async void OnSignOutClicked(object sender, EventArgs e)
     {
-        _accountService.SignOut();
+        await _accountService.SignOutAsync();
         LoadAccountState();
         if (Application.Current is App app)
         {
@@ -233,16 +202,12 @@ public partial class SettingsPage : ContentPage
         }
     }
 
-    private void ApplyServerUrl()
-    {
-        _accountService.SetServerUrl(ServerUrlEntry.Text ?? string.Empty);
-    }
-
     private void LoadAccountState()
     {
         var session = _accountService.Session;
-        ServerUrlEntry.Text = session.ServerUrl;
-        EmailEntry.Text = session.Email;
+        ProjectStatusLabel.Text = string.IsNullOrWhiteSpace(session.ProjectUrl)
+            ? "Supabase is not configured"
+            : session.ProjectUrl;
         AccountStatusLabel.Text = session.IsSignedIn
             ? $"Signed in as {session.Email}"
             : "Not signed in";

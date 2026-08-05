@@ -10,11 +10,22 @@
             <Label Text="ExpenseTracker"
                    FontSize="34"
                    FontAttributes="Bold" />
-            <Label Text="Sign in to sync your data across devices."
+            <Label Text="Sign in securely to access and sync your financial data."
                    Style="{StaticResource MutedLabel}" />
 
-            <Entry x:Name="ServerUrlEntry"
-                   Placeholder="Server URL (e.g. https://api.example.com)" />
+            <Border Padding="14">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Supabase connection" FontAttributes="Bold" />
+                    <Entry x:Name="ProjectUrlEntry"
+                           Placeholder="https://your-project.supabase.co"
+                           Keyboard="Url" />
+                    <Entry x:Name="PublishableKeyEntry"
+                           Placeholder="Publishable or anon key" />
+                    <Label Text="These values identify the app's Supabase project. They can be embedded at build time."
+                           FontSize="12"
+                           Style="{StaticResource MutedLabel}" />
+                </VerticalStackLayout>
+            </Border>
             <Entry x:Name="EmailEntry"
                    Placeholder="Email"
                    Keyboard="Email" />
@@ -31,7 +42,7 @@
                         Clicked="OnLoginClicked" />
             </HorizontalStackLayout>
 
-            <Label Text="An account is required to protect and sync your financial data."
+            <Label Text="An account is required. If email confirmation is enabled, confirm your email before logging in."
                    Style="{StaticResource MutedLabel}" />
         </VerticalStackLayout>
     </ScrollView>

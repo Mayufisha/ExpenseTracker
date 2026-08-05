@@ -23,6 +23,9 @@ public static class MauiProgram
 
         var dbPath = Path.Combine(FileSystem.AppDataDirectory, "expenses.db3");
 
+        builder.Services.AddSingleton(SupabaseOptions.FromAssembly());
+        builder.Services.AddSingleton(new HttpClient());
+        builder.Services.AddSingleton<ISupabaseService, SupabaseService>();
         builder.Services.AddSingleton<IExpenseService>(_ => new SQLiteExpenseService(dbPath));
         builder.Services.AddSingleton<IGoalService>(_ => new SQLiteGoalService(dbPath));
         builder.Services.AddSingleton<IScheduleService>(_ => new SQLiteScheduleService(dbPath));

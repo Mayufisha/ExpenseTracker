@@ -10,7 +10,8 @@ public partial class AuthPage : ContentPage
     {
         InitializeComponent();
         _accountService = accountService;
-        ServerUrlEntry.Text = _accountService.Session.ServerUrl;
+        ProjectUrlEntry.Text = _accountService.Session.ProjectUrl;
+        PublishableKeyEntry.Text = _accountService.Session.PublishableKey;
         EmailEntry.Text = _accountService.Session.Email;
     }
 
@@ -18,10 +19,18 @@ public partial class AuthPage : ContentPage
     {
         try
         {
-            ApplyServerUrl();
+            ApplyConfiguration();
             await _accountService.RegisterAsync(EmailEntry.Text ?? string.Empty, PasswordEntry.Text ?? string.Empty);
-            await _accountService.SignInAsync(EmailEntry.Text ?? string.Empty, PasswordEntry.Text ?? string.Empty);
-            NavigateToMain();
+            if (_accountService.Session.IsSignedIn)
+            {
+                NavigateToMain();
+                return;
+            }
+
+            await DisplayAlert(
+                "Confirm Your Email",
+                "Your account was created. Confirm your email, then return here to log in.",
+                "OK");
         }
         catch (Exception ex)
         {
@@ -33,7 +42,7 @@ public partial class AuthPage : ContentPage
     {
         try
         {
-            ApplyServerUrl();
+            ApplyConfiguration();
             await _accountService.SignInAsync(EmailEntry.Text ?? string.Empty, PasswordEntry.Text ?? string.Empty);
             NavigateToMain();
         }
@@ -43,9 +52,11 @@ public partial class AuthPage : ContentPage
         }
     }
 
-    private void ApplyServerUrl()
+    private void ApplyConfiguration()
     {
-        _accountService.SetServerUrl(ServerUrlEntry.Text ?? string.Empty);
+        _accountService.SetConfiguration(
+            ProjectUrlEntry.Text ?? string.Empty,
+            PublishableKeyEntry.Text ?? string.Empty);
     }
 
     private void NavigateToMain()
