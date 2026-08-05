@@ -43,11 +43,6 @@ public partial class AuthPage : ContentPage
         }
     }
 
-    private void OnGuestClicked(object sender, EventArgs e)
-    {
-        NavigateToMain();
-    }
-
     private void ApplyServerUrl()
     {
         _accountService.SetServerUrl(ServerUrlEntry.Text ?? string.Empty);

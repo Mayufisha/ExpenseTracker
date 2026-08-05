@@ -31,9 +31,8 @@
                         Clicked="OnLoginClicked" />
             </HorizontalStackLayout>
 
-            <Button Text="Just trying it"
-                    Clicked="OnGuestClicked"
-                    Style="{StaticResource TextButton}" />
+            <Label Text="An account is required to protect and sync your financial data."
+                   Style="{StaticResource MutedLabel}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
