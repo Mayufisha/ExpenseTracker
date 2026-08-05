@@ -183,7 +183,7 @@ public partial class SettingsPage : ContentPage
             var result = await _accountService.PullFromCloudAsync();
             await DisplayAlert(
                 "Cloud Sync",
-                $"Downloaded data.\nTransactions: {result.ImportedTransactions}\nGoals: {result.ImportedGoals}\nScheduled: {result.ImportedScheduledItems}",
+                $"Downloaded data.\nTransactions: {result.ImportedTransactions}\nStatements: {result.ImportedStatements}\nGoals: {result.ImportedGoals}\nScheduled: {result.ImportedScheduledItems}",
                 "OK");
         }
         catch (Exception ex)

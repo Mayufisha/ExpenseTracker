@@ -55,6 +55,8 @@ public class DataBackupService : IBackupService
         var goals = await _goalService.GetGoalsAsync();
         var scheduledItems = await _scheduleService.GetScheduledAsync();
         var financialAccounts = await _financialAccountService.GetAccountsAsync();
+        var statements = await _financialAccountService.GetAllStatementsAsync();
+        var accountsById = financialAccounts.ToDictionary(account => account.Id);
 
         return new DataBackup
         {
@@ -78,6 +80,24 @@ public class DataBackupService : IBackupService
                 AccountType = a.AccountType,
                 LastFour = a.LastFour
             }).ToList(),
+            Statements = statements
+                .Where(statement => accountsById.ContainsKey(statement.FinancialAccountId))
+                .Select(statement =>
+                {
+                    var account = accountsById[statement.FinancialAccountId];
+                    return new StatementBackupItem
+                    {
+                        InstitutionName = account.InstitutionName,
+                        AccountName = account.AccountName,
+                        OriginalFileName = statement.OriginalFileName,
+                        CloudStoragePath = statement.CloudStoragePath,
+                        FileType = statement.FileType,
+                        FileHash = statement.FileHash,
+                        AttachedAt = statement.AttachedAt,
+                        ImportedTransactionCount = statement.ImportedTransactionCount
+                    };
+                })
+                .ToList(),
             Goals = goals.Select(CloneGoal).ToList(),
             ScheduledItems = scheduledItems.Select(CloneScheduledItem).ToList()
         };
@@ -110,6 +130,31 @@ public class DataBackupService : IBackupService
         }
 
         var importedAccounts = await _financialAccountService.GetAccountsAsync();
+
+        var importedStatements = 0;
+        foreach (var statement in backup.Statements)
+        {
+            var account = importedAccounts.FirstOrDefault(a =>
+                a.InstitutionName.Equals(statement.InstitutionName, StringComparison.OrdinalIgnoreCase)
+                && a.AccountName.Equals(statement.AccountName, StringComparison.OrdinalIgnoreCase));
+            if (account == null || await _financialAccountService.HasStatementAsync(account.Id, statement.FileHash))
+            {
+                continue;
+            }
+
+            await _financialAccountService.AddStatementAsync(new StatementAttachment
+            {
+                FinancialAccountId = account.Id,
+                OriginalFileName = statement.OriginalFileName,
+                StoredFilePath = string.Empty,
+                CloudStoragePath = statement.CloudStoragePath,
+                FileType = statement.FileType,
+                FileHash = statement.FileHash,
+                AttachedAt = statement.AttachedAt,
+                ImportedTransactionCount = statement.ImportedTransactionCount
+            });
+            importedStatements++;
+        }
 
         var importedTransactions = 0;
         foreach (var item in backup.Transactions)
@@ -165,7 +210,8 @@ public class DataBackupService : IBackupService
         {
             ImportedTransactions = importedTransactions,
             ImportedGoals = importedGoals,
-            ImportedScheduledItems = importedScheduled
+            ImportedScheduledItems = importedScheduled,
+            ImportedStatements = importedStatements
         };
     }
 

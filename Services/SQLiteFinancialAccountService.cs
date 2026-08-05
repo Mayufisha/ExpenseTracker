@@ -19,7 +19,21 @@ public class SQLiteFinancialAccountService : IFinancialAccountService
 
         await _db.CreateTableAsync<FinancialAccount>();
         await _db.CreateTableAsync<StatementAttachment>();
+        await EnsureStatementSchemaAsync();
         _initialized = true;
+    }
+
+    private async Task EnsureStatementSchemaAsync()
+    {
+        try
+        {
+            await _db.ExecuteAsync(
+                "ALTER TABLE StatementAttachment ADD COLUMN CloudStoragePath TEXT");
+        }
+        catch
+        {
+            // Column already exists.
+        }
     }
 
     public async Task<IReadOnlyList<FinancialAccount>> GetAccountsAsync()
@@ -91,6 +105,14 @@ public class SQLiteFinancialAccountService : IFinancialAccountService
             .ToListAsync();
     }
 
+    public async Task<IReadOnlyList<StatementAttachment>> GetAllStatementsAsync()
+    {
+        await InitAsync();
+        return await _db.Table<StatementAttachment>()
+            .OrderByDescending(s => s.AttachedAt)
+            .ToListAsync();
+    }
+
     public async Task<bool> HasStatementAsync(int accountId, string fileHash)
     {
         await InitAsync();
@@ -102,6 +124,9 @@ public class SQLiteFinancialAccountService : IFinancialAccountService
     public async Task AddStatementAsync(StatementAttachment statement)
     {
         await InitAsync();
-        await _db.InsertAsync(statement);
+        if (statement.Id == 0)
+            await _db.InsertAsync(statement);
+        else
+            await _db.UpdateAsync(statement);
     }
 }

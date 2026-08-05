@@ -7,15 +7,18 @@ public class StatementImportService : IStatementImportService
 {
     private readonly IFinancialAccountService _accountService;
     private readonly IExpenseService _expenseService;
+    private readonly ICloudStatementSyncService _cloudSyncService;
     private readonly string _statementDirectory;
 
     public StatementImportService(
         IFinancialAccountService accountService,
         IExpenseService expenseService,
+        ICloudStatementSyncService cloudSyncService,
         string statementDirectory)
     {
         _accountService = accountService;
         _expenseService = expenseService;
+        _cloudSyncService = cloudSyncService;
         _statementDirectory = statementDirectory;
     }
 
@@ -63,13 +66,24 @@ public class StatementImportService : IStatementImportService
                 AttachedAt = DateTime.UtcNow
             });
 
+            var cloudMessage = string.Empty;
+            try
+            {
+                var uploaded = await _cloudSyncService.SyncPendingAsync();
+                cloudMessage = uploaded > 0 ? " Synced securely to Supabase." : string.Empty;
+            }
+            catch
+            {
+                cloudMessage = " Saved locally; cloud upload will retry on the next upload sync.";
+            }
+
             return new StatementImportResult
             {
                 ImportedTransactionCount = importedCount,
                 TransactionsImported = extension == ".csv",
                 Message = extension == ".csv"
-                    ? $"Attached statement and imported {importedCount} transactions."
-                    : "Attached PDF statement. Use a CSV export to import transactions automatically."
+                    ? $"Attached statement and imported {importedCount} transactions.{cloudMessage}"
+                    : $"Attached PDF statement. Use a CSV export to import transactions automatically.{cloudMessage}"
             };
         }
         catch
