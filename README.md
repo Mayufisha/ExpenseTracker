@@ -4,35 +4,61 @@ ExpenseTracker is a cross-platform personal finance app built with .NET MAUI, SQ
 
 ## Features
 
-- Startup auth gate:
-- If an account session exists, users enter the app directly.
-- If no session exists, users see login/signup first, with a `Just trying it` guest option.
-- Dashboard:
+### Authentication and Sync
+
+- Login or signup is required before financial data can be accessed.
+- The active session is saved locally and restored when the app starts again.
+- Users can sign out from Settings.
+- Account data can be uploaded to or downloaded from a configured sync server.
+
+### Dashboard
+
 - Tracks Income, Expenses, Assets, Liabilities, Net Cashflow, and Net Worth.
-- Includes a 6-month net cashflow trend (line chart) and a financial composition chart (donut).
-- Transactions:
-- Add, edit, delete.
-- Monthly view/filter.
-- Goals:
-- Add, edit, delete.
-- Monthly view/filter by deadline month.
-- Schedule:
-- Add, delete.
-- Monthly view/filter.
-- Settings:
-- Theme preference (System/Light/Dark).
-- Export backup to JSON.
-- Import backup from JSON.
-- Account sync controls (register, sign in, sign out, upload sync, download sync).
-- Theme consistency:
-- Shared color/style resources are applied across screens, not just on one page.
+- Includes a 6-month net cashflow trend and financial composition charts.
+
+### Transactions
+
+- Add, edit, and delete transactions.
+- Filter by month and financial institution.
+- Imported transactions show their bank or credit-card source.
+
+### Banks and Credit Cards
+
+- Add and edit accounts from multiple financial institutions.
+- Record institution name, account name/type, and optional last four digits.
+- Attach CSV or PDF bank and credit-card statements.
+- CSV statements import transactions automatically.
+- PDF statements are stored in the app's private data directory for reference.
+- Duplicate statement files are detected using a SHA-256 file hash.
+
+### Goals and Schedule
+
+- Add, edit, and delete savings goals with monthly deadline filtering.
+- Add and delete scheduled payments with monthly filtering.
+
+### Settings and Appearance
+
+- System, Light, and Dark theme preferences apply across all screens.
+- Export or import a JSON backup.
+- Manage sign-in and cloud synchronization.
+
+## Statement CSV Format
+
+The importer recognizes common column names used by financial institutions:
+
+- Date: `Date`, `Transaction Date`, `Posted Date`, or `Posting Date`
+- Description: `Description`, `Memo`, `Details`, `Name`, or `Transaction`
+- Amount: `Amount` or `Transaction Amount`
+- Separate amount columns: `Debit`/`Withdrawal`/`Charge` and `Credit`/`Deposit`/`Payment`
+
+For bank accounts, negative amounts are expenses and positive amounts are income. For credit cards, positive amounts are treated as charges and negative amounts as credits/refunds.
 
 ## Architecture
 
-- `Models/` entities and supporting DTOs/enums
-- `Services/` SQLite persistence, backup, and account/cloud sync integration
-- `ViewModels/` MVVM page state and filtering logic
-- `Views/` XAML pages and UI interaction code-behind
+- `Models/` entities, backup DTOs, and enums
+- `Services/` SQLite persistence, statement parsing/import, backup, and account sync
+- `ViewModels/` page state and filtering logic
+- `Views/` MAUI XAML pages and UI interaction code
 
 ## Tech Stack
 
@@ -40,21 +66,23 @@ ExpenseTracker is a cross-platform personal finance app built with .NET MAUI, SQ
 - SQLite (`sqlite-net-pcl`)
 - Charts (`Microcharts.Maui`)
 
-## Data Storage
+## Data Storage and Privacy
 
-- Local DB: `expenses.db3`
+- Local database: `expenses.db3`
+- Statement files: private application data under `Statements/`
 - Backup format: JSON (`DataBackup`)
-- Optional cloud sync via authenticated backend API
+- Institution definitions and imported transaction data are included in backup/cloud sync.
+- Raw statement files are kept local and are not uploaded by the current sync implementation.
 
 ## Cloud Sync API Contract
 
-The app expects these endpoints on your backend:
+The app expects these endpoints on the configured backend:
 
 - `POST /api/account/register` body: `{ "email": "...", "password": "..." }`
 - `POST /api/account/login` body: `{ "email": "...", "password": "..." }`
 - Login response: `{ "token": "..." }`
-- `POST /api/sync/push` body: `DataBackup` with `Authorization: Bearer <token>`
-- `GET /api/sync/pull` returns: `DataBackup` with `Authorization: Bearer <token>`
+- `POST /api/sync/push` body: `DataBackup`, authorized with `Bearer <token>`
+- `GET /api/sync/pull` returns `DataBackup`, authorized with `Bearer <token>`
 
 ## Getting Started
 
@@ -77,7 +105,4 @@ dotnet build ExpenseTracker.sln
 dotnet test ExpenseTracker.Tests/ExpenseTracker.Tests.csproj
 ```
 
-## Notes
-
-- Cloud sync requires setting a backend server URL in the app.
-- Existing tests focus on core viewmodel filtering and dashboard aggregate logic.
+Cloud sync requires a compatible backend URL configured on the login screen.
