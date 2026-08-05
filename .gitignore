@@ -363,3 +363,10 @@ MigrationBackup/
 FodyWeavers.xsd
 # Local dotnet CLI home/cache created for sandbox-safe restore/build.
 .dotnet/
+
+# Local Supabase and environment configuration.
+.env
+.env.*
+!.env.example
+supabase/.branches/
+supabase/.temp/
