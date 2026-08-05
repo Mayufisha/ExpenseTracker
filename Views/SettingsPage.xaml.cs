@@ -146,7 +146,7 @@ public partial class SettingsPage : ContentPage
             var result = await _backupService.ImportBackupAsync(file.FullPath, clearExistingData: true);
             await DisplayAlert(
                 "Import Complete",
-                $"Transactions: {result.ImportedTransactions}\nGoals: {result.ImportedGoals}\nScheduled items: {result.ImportedScheduledItems}",
+                $"Transactions: {result.ImportedTransactions}\nStatements: {result.ImportedStatements}\nGoals: {result.ImportedGoals}\nScheduled items: {result.ImportedScheduledItems}",
                 "OK");
         }
         catch (Exception)
