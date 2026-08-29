@@ -39,6 +39,7 @@
     <Compile Include="..\\Services\\ISplitService.cs" Link="Source\\Services\\ISplitService.cs" />
     <Compile Include="..\\Services\\ISupabaseService.cs" Link="Source\\Services\\ISupabaseService.cs" />
     <Compile Include="..\\Services\\SQLiteSplitService.cs" Link="Source\\Services\\SQLiteSplitService.cs" />
+    <Compile Include="..\\Services\\SplitAllocationCalculator.cs" Link="Source\\Services\\SplitAllocationCalculator.cs" />
     <Compile Include="..\\Services\\CsvStatementParser.cs" Link="Source\\Services\\CsvStatementParser.cs" />
     <Compile Include="..\\ViewModels\\BaseViewModel.cs" Link="Source\\ViewModels\\BaseViewModel.cs" />
     <Compile Include="..\\ViewModels\\DashboardViewModel.cs" Link="Source\\ViewModels\\DashboardViewModel.cs" />

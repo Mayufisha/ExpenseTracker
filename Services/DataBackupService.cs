@@ -30,7 +30,7 @@ public class DataBackupService : IBackupService
         var backup = await CreateBackupAsync();
 
         Directory.CreateDirectory(outputDirectory);
-        var fileName = $"expense-backup-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json";
+        var fileName = $"money-manager-backup-{DateTime.UtcNow:yyyyMMdd-HHmmss}.json";
         var fullPath = Path.Combine(outputDirectory, fileName);
         var json = JsonSerializer.Serialize(backup, SerializerOptions);
         await File.WriteAllTextAsync(fullPath, json);
@@ -224,7 +224,7 @@ public class DataBackupService : IBackupService
         var transactionSyncIds = (await _expenseService.GetTransactionsAsync())
             .Select(transaction => transaction.SyncId)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        foreach (var item in backup.ExpenseSplits)
+        foreach (var item in backup.ExpenseSplits ?? new List<ExpenseSplitBackupItem>())
         {
             if (!transactionSyncIds.Contains(item.TransactionSyncId)) continue;
 
@@ -240,7 +240,7 @@ public class DataBackupService : IBackupService
                 CreatedAt = item.CreatedAt,
                 UpdatedAt = item.UpdatedAt
             };
-            var participants = item.Participants.Select(participant => new SplitParticipant
+            var participants = (item.Participants ?? new List<SplitParticipantBackupItem>()).Select(participant => new SplitParticipant
             {
                 SyncId = participant.SyncId,
                 Name = participant.Name,

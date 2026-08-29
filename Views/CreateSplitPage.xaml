@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ExpenseTracker.Views.CreateSplitPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    Title="New split">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="16">
+            <VerticalStackLayout Spacing="3">
+                <Label Text="Split a transaction" FontSize="28" FontAttributes="Bold" />
+                <Label Text="Your share stays in your spending. The rest becomes money to collect."
+                       Style="{StaticResource MutedLabel}" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="Expense transaction" FontAttributes="Bold" />
+                <Picker x:Name="TransactionPicker"
+                        Title="Choose an expense"
+                        ItemDisplayBinding="{Binding SplitDisplay}"
+                        SelectedIndexChanged="OnTransactionChanged" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="Split name" FontAttributes="Bold" />
+                <Entry x:Name="TitleEntry" Placeholder="Dinner, taxi, rent..." />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="Method" FontAttributes="Bold" />
+                <Picker x:Name="MethodPicker" SelectedIndexChanged="OnMethodChanged">
+                    <Picker.Items>
+                        <x:String>Equal</x:String>
+                        <x:String>Custom</x:String>
+                    </Picker.Items>
+                </Picker>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="6">
+                <Label Text="People" FontAttributes="Bold" />
+                <Editor x:Name="PeopleEditor"
+                        AutoSize="TextChanges"
+                        MinimumHeightRequest="110"
+                        Placeholder="One person per line&#10;Alex | alex@email.com&#10;Morgan" />
+                <Label Text="Contact information is optional and is only used when you share a payment request."
+                       Style="{StaticResource MutedLabel}" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout x:Name="CustomAmountsSection" Spacing="6" IsVisible="False">
+                <Label Text="Custom amounts" FontAttributes="Bold" />
+                <Editor x:Name="AmountsEditor"
+                        AutoSize="TextChanges"
+                        MinimumHeightRequest="90"
+                        Placeholder="One amount per person, in the same order&#10;24.50&#10;18.00" />
+            </VerticalStackLayout>
+
+            <Border Padding="14" StrokeShape="RoundRectangle 14"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark=#153B36}">
+                <Label x:Name="PreviewLabel"
+                       Text="Choose a transaction to preview the split."
+                       FontAttributes="Bold" />
+            </Border>
+
+            <Button x:Name="SaveButton" Text="Create split" Clicked="OnSaveClicked" />
+            <Button Text="Cancel" Style="{StaticResource TextButton}" Clicked="OnCancelClicked" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

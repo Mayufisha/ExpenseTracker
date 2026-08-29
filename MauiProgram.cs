@@ -31,6 +31,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IScheduleService>(_ => new SQLiteScheduleService(dbPath));
         builder.Services.AddSingleton<IFinancialAccountService>(_ => new SQLiteFinancialAccountService(dbPath));
         builder.Services.AddSingleton<ISplitService>(_ => new SQLiteSplitService(dbPath));
+        builder.Services.AddSingleton<IPaymentRequestService, PaymentRequestService>();
         builder.Services.AddSingleton<ICloudStatementSyncService, CloudStatementSyncService>();
         builder.Services.AddSingleton<IStatementImportService>(provider => new StatementImportService(
             provider.GetRequiredService<IFinancialAccountService>(),
@@ -45,14 +46,17 @@ public static class MauiProgram
         builder.Services.AddSingleton<GoalsViewModel>();
         builder.Services.AddSingleton<ScheduleViewModel>();
         builder.Services.AddSingleton<FinancialAccountsViewModel>();
+        builder.Services.AddSingleton<SplitsViewModel>();
 
         builder.Services.AddSingleton<DashboardPage>();
         builder.Services.AddSingleton<TransactionsPage>();
         builder.Services.AddSingleton<GoalsPage>();
         builder.Services.AddSingleton<SchedulePage>();
         builder.Services.AddSingleton<FinancialAccountsPage>();
+        builder.Services.AddSingleton<SplitsPage>();
         builder.Services.AddSingleton<SettingsPage>();
         builder.Services.AddTransient<AddEditTransactionPage>();
+        builder.Services.AddTransient<CreateSplitPage>();
 
         return builder.Build();
     }

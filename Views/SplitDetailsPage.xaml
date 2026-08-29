@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ExpenseTracker.Views.SplitDetailsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:ExpenseTracker.Models"
+    x:DataType="models:ExpenseSplit"
+    Title="Split details">
+
+    <Grid RowDefinitions="Auto,*" Padding="16" RowSpacing="14">
+        <Border Padding="16" StrokeShape="RoundRectangle 18"
+                BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark=#153B36}">
+            <VerticalStackLayout Spacing="6">
+                <Label Text="{Binding Title}" FontSize="26" FontAttributes="Bold" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Text="{Binding ParticipantSummary}" Style="{StaticResource MutedLabel}" />
+                    <Label Grid.Column="1" Text="{Binding TotalAmount, StringFormat='Total ${0:F2}'}"
+                           FontAttributes="Bold" />
+                </Grid>
+                <ProgressBar Progress="{Binding CollectionProgress}" HeightRequest="8" />
+                <Label Text="{Binding StatusDisplay}" FontAttributes="Bold"
+                       TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                <Label Text="{Binding UserShare, StringFormat='Your share: ${0:F2}'}"
+                       Style="{StaticResource MutedLabel}" />
+            </VerticalStackLayout>
+        </Border>
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding Participants}">
+            <CollectionView.Header>
+                <Label Text="People" FontSize="18" FontAttributes="Bold" Margin="0,4,0,8" />
+            </CollectionView.Header>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:SplitParticipant">
+                    <Border Padding="14" Margin="0,0,0,10" StrokeShape="RoundRectangle 14">
+                        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="8">
+                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="16" />
+                            <Label Grid.Column="1" Text="{Binding AmountDisplay}"
+                                   FontAttributes="Bold" FontSize="16" />
+                            <Label Grid.Row="1" Text="{Binding Contact}" Style="{StaticResource MutedLabel}" />
+                            <Label Grid.Row="1" Grid.Column="1" Text="{Binding PaymentStatus}"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
+                            <HorizontalStackLayout Grid.Row="2" Grid.ColumnSpan="2" Spacing="8">
+                                <Button Text="Request payment"
+                                        CommandParameter="{Binding .}"
+                                        Clicked="OnRequestPaymentClicked" />
+                                <Button Text="{Binding SettlementAction}"
+                                        Style="{StaticResource TextButton}"
+                                        CommandParameter="{Binding .}"
+                                        Clicked="OnTogglePaidClicked" />
+                            </HorizontalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+            <CollectionView.Footer>
+                <Button Text="Delete split"
+                        Style="{StaticResource DangerButton}"
+                        Margin="0,10,0,20"
+                        Clicked="OnDeleteClicked" />
+            </CollectionView.Footer>
+        </CollectionView>
+    </Grid>
+</ContentPage>

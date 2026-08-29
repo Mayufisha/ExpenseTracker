@@ -146,7 +146,7 @@ public partial class SettingsPage : ContentPage
             var result = await _backupService.ImportBackupAsync(file.FullPath, clearExistingData: true);
             await DisplayAlert(
                 "Import Complete",
-                $"Transactions: {result.ImportedTransactions}\nStatements: {result.ImportedStatements}\nGoals: {result.ImportedGoals}\nScheduled items: {result.ImportedScheduledItems}",
+                $"Transactions: {result.ImportedTransactions}\nSplits: {result.ImportedSplits}\nStatements: {result.ImportedStatements}\nGoals: {result.ImportedGoals}\nScheduled items: {result.ImportedScheduledItems}",
                 "OK");
         }
         catch (Exception)
@@ -183,7 +183,7 @@ public partial class SettingsPage : ContentPage
             var result = await _accountService.PullFromCloudAsync();
             await DisplayAlert(
                 "Cloud Sync",
-                $"Downloaded data.\nTransactions: {result.ImportedTransactions}\nStatements: {result.ImportedStatements}\nGoals: {result.ImportedGoals}\nScheduled: {result.ImportedScheduledItems}",
+                $"Downloaded data.\nTransactions: {result.ImportedTransactions}\nSplits: {result.ImportedSplits}\nStatements: {result.ImportedStatements}\nGoals: {result.ImportedGoals}\nScheduled: {result.ImportedScheduledItems}",
                 "OK");
         }
         catch (Exception ex)

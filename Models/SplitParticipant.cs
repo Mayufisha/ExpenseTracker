@@ -20,4 +20,10 @@ public class SplitParticipant
 
     [Ignore]
     public string PaymentStatus => IsPaid ? "Paid" : "Owes";
+
+    [Ignore]
+    public string SettlementAction => IsPaid ? "Undo" : "Mark paid";
+
+    [Ignore]
+    public string AmountDisplay => $"${AmountOwed:F2}";
 }

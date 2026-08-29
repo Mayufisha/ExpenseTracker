@@ -39,6 +39,13 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Transaction">
                     <SwipeView>
+                        <SwipeView.LeftItems>
+                            <SwipeItems Mode="Reveal">
+                                <SwipeItem Text="Split"
+                                           BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
+                                           Invoked="OnSplitSwipeInvoked" />
+                            </SwipeItems>
+                        </SwipeView.LeftItems>
                         <SwipeView.RightItems>
                             <SwipeItems Mode="Reveal">
                                 <SwipeItem Text="Delete"

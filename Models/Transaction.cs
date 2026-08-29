@@ -32,6 +32,9 @@ public class Transaction
         : $"{InstitutionName} - {AccountName}";
 
     [Ignore]
+    public string SplitDisplay => $"{Date:MMM d}  ·  {Note}  ·  ${Amount:F2}";
+
+    [Ignore]
     public TransactionType ParsedType
     {
         get
