@@ -9,17 +9,20 @@ public class DataBackupService : IBackupService
     private readonly IGoalService _goalService;
     private readonly IScheduleService _scheduleService;
     private readonly IFinancialAccountService _financialAccountService;
+    private readonly ISplitService _splitService;
 
     public DataBackupService(
         IExpenseService expenseService,
         IGoalService goalService,
         IScheduleService scheduleService,
-        IFinancialAccountService financialAccountService)
+        IFinancialAccountService financialAccountService,
+        ISplitService splitService)
     {
         _expenseService = expenseService;
         _goalService = goalService;
         _scheduleService = scheduleService;
         _financialAccountService = financialAccountService;
+        _splitService = splitService;
     }
 
     public async Task<string> ExportBackupAsync(string outputDirectory)
@@ -56,6 +59,7 @@ public class DataBackupService : IBackupService
         var scheduledItems = await _scheduleService.GetScheduledAsync();
         var financialAccounts = await _financialAccountService.GetAccountsAsync();
         var statements = await _financialAccountService.GetAllStatementsAsync();
+        var splits = await _splitService.GetSplitsAsync();
         var accountsById = financialAccounts.ToDictionary(account => account.Id);
 
         return new DataBackup
@@ -63,6 +67,7 @@ public class DataBackupService : IBackupService
             Transactions = transactions
                 .Select(t => new TransactionBackupItem
                 {
+                    SyncId = t.SyncId,
                     Amount = t.Amount,
                     Type = t.ParsedType.ToString(),
                     Date = t.Date,
@@ -73,6 +78,30 @@ public class DataBackupService : IBackupService
                     StatementFileName = t.StatementFileName
                 })
                 .ToList(),
+            ExpenseSplits = splits.Select(split => new ExpenseSplitBackupItem
+            {
+                SyncId = split.SyncId,
+                TransactionSyncId = split.TransactionSyncId,
+                Title = split.Title,
+                TotalAmount = split.TotalAmount,
+                UserShare = split.UserShare,
+                Currency = split.Currency,
+                SplitMethod = split.SplitMethod,
+                CreatedAt = split.CreatedAt,
+                UpdatedAt = split.UpdatedAt,
+                Participants = split.Participants.Select(participant => new SplitParticipantBackupItem
+                {
+                    SyncId = participant.SyncId,
+                    Name = participant.Name,
+                    Contact = participant.Contact,
+                    AmountOwed = participant.AmountOwed,
+                    IsPaid = participant.IsPaid,
+                    PaidAt = participant.PaidAt,
+                    LastPaymentRequestAt = participant.LastPaymentRequestAt,
+                    PaymentProvider = participant.PaymentProvider,
+                    ExternalPaymentId = participant.ExternalPaymentId
+                }).ToList()
+            }).ToList(),
             FinancialAccounts = financialAccounts.Select(a => new FinancialAccountBackupItem
             {
                 InstitutionName = a.InstitutionName,
@@ -165,6 +194,9 @@ public class DataBackupService : IBackupService
 
             var transaction = new Transaction
             {
+                SyncId = string.IsNullOrWhiteSpace(item.SyncId)
+                    ? Guid.NewGuid().ToString("N")
+                    : item.SyncId,
                 Amount = item.Amount,
                 Date = item.Date,
                 Note = item.Note ?? string.Empty,
@@ -186,6 +218,42 @@ public class DataBackupService : IBackupService
             transaction.ParsedType = parsed;
             await _expenseService.AddOrUpdateTransactionAsync(transaction);
             importedTransactions++;
+        }
+
+        var importedSplits = 0;
+        var transactionSyncIds = (await _expenseService.GetTransactionsAsync())
+            .Select(transaction => transaction.SyncId)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in backup.ExpenseSplits)
+        {
+            if (!transactionSyncIds.Contains(item.TransactionSyncId)) continue;
+
+            var split = new ExpenseSplit
+            {
+                SyncId = item.SyncId,
+                TransactionSyncId = item.TransactionSyncId,
+                Title = item.Title,
+                TotalAmount = item.TotalAmount,
+                UserShare = item.UserShare,
+                Currency = item.Currency,
+                SplitMethod = item.SplitMethod,
+                CreatedAt = item.CreatedAt,
+                UpdatedAt = item.UpdatedAt
+            };
+            var participants = item.Participants.Select(participant => new SplitParticipant
+            {
+                SyncId = participant.SyncId,
+                Name = participant.Name,
+                Contact = participant.Contact,
+                AmountOwed = participant.AmountOwed,
+                IsPaid = participant.IsPaid,
+                PaidAt = participant.PaidAt,
+                LastPaymentRequestAt = participant.LastPaymentRequestAt,
+                PaymentProvider = participant.PaymentProvider,
+                ExternalPaymentId = participant.ExternalPaymentId
+            }).ToList();
+            await _splitService.CreateSplitAsync(split, participants);
+            importedSplits++;
         }
 
         var importedGoals = 0;
@@ -211,12 +279,14 @@ public class DataBackupService : IBackupService
             ImportedTransactions = importedTransactions,
             ImportedGoals = importedGoals,
             ImportedScheduledItems = importedScheduled,
-            ImportedStatements = importedStatements
+            ImportedStatements = importedStatements,
+            ImportedSplits = importedSplits
         };
     }
 
     public async Task ClearAllDataAsync()
     {
+        await _splitService.ClearAllAsync();
         await _expenseService.ClearAllTransactionsAsync();
         await _goalService.ClearAllAsync();
         await _scheduleService.ClearAllAsync();

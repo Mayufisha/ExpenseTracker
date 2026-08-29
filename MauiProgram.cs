@@ -30,6 +30,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IGoalService>(_ => new SQLiteGoalService(dbPath));
         builder.Services.AddSingleton<IScheduleService>(_ => new SQLiteScheduleService(dbPath));
         builder.Services.AddSingleton<IFinancialAccountService>(_ => new SQLiteFinancialAccountService(dbPath));
+        builder.Services.AddSingleton<ISplitService>(_ => new SQLiteSplitService(dbPath));
         builder.Services.AddSingleton<ICloudStatementSyncService, CloudStatementSyncService>();
         builder.Services.AddSingleton<IStatementImportService>(provider => new StatementImportService(
             provider.GetRequiredService<IFinancialAccountService>(),

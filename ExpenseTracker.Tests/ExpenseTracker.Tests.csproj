@@ -19,6 +19,7 @@
     <Compile Include="..\\Models\\AccountSession.cs" Link="Source\\Models\\AccountSession.cs" />
     <Compile Include="..\\Models\\Category.cs" Link="Source\\Models\\Category.cs" />
     <Compile Include="..\\Models\\DataBackup.cs" Link="Source\\Models\\DataBackup.cs" />
+    <Compile Include="..\\Models\\ExpenseSplit.cs" Link="Source\\Models\\ExpenseSplit.cs" />
     <Compile Include="..\\Models\\FinancialAccount.cs" Link="Source\\Models\\FinancialAccount.cs" />
     <Compile Include="..\\Models\\Goal.cs" Link="Source\\Models\\Goal.cs" />
     <Compile Include="..\\Models\\MonthFilterOption.cs" Link="Source\\Models\\MonthFilterOption.cs" />
@@ -26,6 +27,7 @@
     <Compile Include="..\\Models\\ParsedStatementTransaction.cs" Link="Source\\Models\\ParsedStatementTransaction.cs" />
     <Compile Include="..\\Models\\ScheduledTransaction.cs" Link="Source\\Models\\ScheduledTransaction.cs" />
     <Compile Include="..\\Models\\StatementAttachment.cs" Link="Source\\Models\\StatementAttachment.cs" />
+    <Compile Include="..\\Models\\SplitParticipant.cs" Link="Source\\Models\\SplitParticipant.cs" />
     <Compile Include="..\\Models\\TimeRange.cs" Link="Source\\Models\\TimeRange.cs" />
     <Compile Include="..\\Models\\Transaction.cs" Link="Source\\Models\\Transaction.cs" />
     <Compile Include="..\\Models\\TransactionType.cs" Link="Source\\Models\\TransactionType.cs" />
@@ -34,7 +36,9 @@
     <Compile Include="..\\Services\\IExpenseService.cs" Link="Source\\Services\\IExpenseService.cs" />
     <Compile Include="..\\Services\\IFinancialAccountService.cs" Link="Source\\Services\\IFinancialAccountService.cs" />
     <Compile Include="..\\Services\\IScheduleService.cs" Link="Source\\Services\\IScheduleService.cs" />
+    <Compile Include="..\\Services\\ISplitService.cs" Link="Source\\Services\\ISplitService.cs" />
     <Compile Include="..\\Services\\ISupabaseService.cs" Link="Source\\Services\\ISupabaseService.cs" />
+    <Compile Include="..\\Services\\SQLiteSplitService.cs" Link="Source\\Services\\SQLiteSplitService.cs" />
     <Compile Include="..\\Services\\CsvStatementParser.cs" Link="Source\\Services\\CsvStatementParser.cs" />
     <Compile Include="..\\ViewModels\\BaseViewModel.cs" Link="Source\\ViewModels\\BaseViewModel.cs" />
     <Compile Include="..\\ViewModels\\DashboardViewModel.cs" Link="Source\\ViewModels\\DashboardViewModel.cs" />

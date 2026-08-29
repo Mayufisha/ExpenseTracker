@@ -47,9 +47,18 @@ public class SQLiteExpenseService : IExpenseService
         await TryAddColumnAsync("InstitutionName TEXT");
         await TryAddColumnAsync("AccountName TEXT");
         await TryAddColumnAsync("StatementFileName TEXT");
+        await TryAddColumnAsync("SyncId TEXT");
 
         await _db.ExecuteAsync(
             "UPDATE \"Transaction\" SET Type = CASE WHEN IsIncome = 1 THEN 'Income' ELSE 'Expense' END WHERE Type IS NULL OR TRIM(Type) = ''");
+
+        var transactionsWithoutSyncId = await _db.QueryAsync<Transaction>(
+            "SELECT * FROM \"Transaction\" WHERE SyncId IS NULL OR TRIM(SyncId) = ''");
+        foreach (var transaction in transactionsWithoutSyncId)
+        {
+            transaction.SyncId = Guid.NewGuid().ToString("N");
+            await _db.UpdateAsync(transaction);
+        }
     }
 
     private async Task TryAddColumnAsync(string columnDefinition)
@@ -100,6 +109,9 @@ public class SQLiteExpenseService : IExpenseService
         }
 
         transaction.IsIncome = transaction.ParsedType == TransactionType.Income;
+        transaction.SyncId = string.IsNullOrWhiteSpace(transaction.SyncId)
+            ? Guid.NewGuid().ToString("N")
+            : transaction.SyncId;
 
         if (transaction.Id == 0)
             await _db.InsertAsync(transaction);

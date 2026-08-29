@@ -7,6 +7,8 @@ public class Transaction
     [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
 
+    public string SyncId { get; set; } = Guid.NewGuid().ToString("N");
+
     public decimal Amount { get; set; }
 
     // Legacy compatibility for existing rows; new logic uses Type.
