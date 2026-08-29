@@ -21,6 +21,19 @@ Money Manager is a cross-platform personal finance app built with .NET MAUI, SQL
 - Add, edit, and delete transactions.
 - Filter by month and financial institution.
 - Imported transactions show their bank or credit-card source.
+- Swipe an expense transaction from left to right to start a split.
+
+### Shared Expenses and Fares
+
+- Split any expense transaction, including restaurant bills, trip fares, rent, and imported card purchases.
+- Divide equally between the current user and other participants, or enter custom participant shares.
+- Store an optional email address or phone number for each participant.
+- Track outstanding, collected, and settled amounts.
+- Mark individual shares paid or unpaid.
+- Share a payment request through the device share sheet.
+- Sync split and settlement state through the user's Supabase backup.
+
+The current release records settlement status but does not process or hold money. It never collects card numbers or bank credentials.
 
 ### Banks and Credit Cards
 
@@ -57,7 +70,7 @@ For bank accounts, negative amounts are expenses and positive amounts are income
 ## Architecture
 
 - `Models/` entities, backup DTOs, and enums
-- `Services/` SQLite persistence, statement parsing/import, backup, and account sync
+- `Services/` SQLite persistence, statement parsing/import, split allocation, payment-request sharing, backup, and account sync
 - `ViewModels/` page state and filtering logic
 - `Views/` MAUI XAML pages and UI interaction code
 
@@ -77,6 +90,7 @@ For bank accounts, negative amounts are expenses and positive amounts are income
 - Access and refresh tokens: platform `SecureStorage`
 - Institution definitions and imported transaction data are included in backup/cloud sync.
 - Local filesystem paths are never included in cloud backups.
+- Split participants, shares, and settlement state are included in backup version 3.
 - The publishable/anon key may be bundled in the client. Never place a Supabase `service_role` or secret key in this app.
 
 ## Supabase Setup
@@ -125,6 +139,7 @@ The older JWT-style `anon` key is also supported. Do not use a secret key or the
 - The app remains local-first; normal edits write to SQLite immediately.
 - **Upload Sync** retries pending statement uploads, then upserts the current backup into PostgreSQL.
 - **Download Sync** replaces the local transactions, accounts, statement metadata, goals, and schedule with the latest cloud snapshot.
+- Split records use stable transaction GUIDs, so relationships survive a cross-device restore.
 - Cloud backup writes are last-write-wins. Upload from the device with the desired current data before downloading on another device.
 - Raw statement files remain in private Supabase Storage. Downloaded backups restore their metadata, not a device-local copy of each raw file.
 
@@ -150,3 +165,7 @@ dotnet test ExpenseTracker.Tests/ExpenseTracker.Tests.csproj
 ```
 
 Supabase must be configured and the migration must be applied before signup, login, or cloud sync will work.
+
+## Product Roadmap
+
+The next stages for Money Manager are tracked in [`docs/ROADMAP.md`](docs/ROADMAP.md). The payment roadmap deliberately separates payment requests from money movement so a future provider integration can meet security, reconciliation, identity, dispute, and app-store requirements.
