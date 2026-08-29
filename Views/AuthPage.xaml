@@ -7,7 +7,7 @@
 
     <ScrollView>
         <VerticalStackLayout Padding="24" Spacing="14">
-            <Label Text="ExpenseTracker"
+            <Label Text="Money Manager"
                    FontSize="34"
                    FontAttributes="Bold" />
             <Label Text="Sign in securely to access and sync your financial data."

@@ -1,6 +1,6 @@
-# ExpenseTracker (.NET MAUI)
+# Money Manager (.NET MAUI)
 
-ExpenseTracker is a cross-platform personal finance app built with .NET MAUI, SQLite, PostgreSQL, Supabase, and MVVM. SQLite provides the offline device cache; Supabase provides accounts, cross-device backups, and private statement storage.
+Money Manager is a cross-platform personal finance app built with .NET MAUI, SQLite, PostgreSQL, Supabase, and MVVM. It combines expense tracking, financial accounts, statement imports, goals, schedules, and shared-expense management. SQLite provides the offline device cache; Supabase provides accounts, cross-device backups, and private statement storage.
 
 ## Features
 

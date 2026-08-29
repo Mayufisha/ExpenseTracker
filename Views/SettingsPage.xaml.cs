@@ -87,7 +87,7 @@ public partial class SettingsPage : ContentPage
             var path = await _backupService.ExportBackupAsync(FileSystem.CacheDirectory);
             await Share.Default.RequestAsync(new ShareFileRequest
             {
-                Title = "ExpenseTracker Backup",
+                Title = "Money Manager Backup",
                 File = new ShareFile(path)
             });
         }

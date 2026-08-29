@@ -23,7 +23,7 @@
 		<SupabasePublishableKey Condition="'$(SupabasePublishableKey)' == ''">$(SUPABASE_PUBLISHABLE_KEY)</SupabasePublishableKey>
 
 		<!-- Display name -->
-		<ApplicationTitle>ExpenseTracker</ApplicationTitle>
+		<ApplicationTitle>Money Manager</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.expensetracker</ApplicationId>
