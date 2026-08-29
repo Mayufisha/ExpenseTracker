@@ -47,7 +47,16 @@ Required platform work:
 - Regional availability, currency, tax, privacy, and financial-regulation review
 - Apple App Store and Google Play policy review before release
 
-The existing `IPaymentRequestService`, `PaymentProvider`, and `ExternalPaymentId` fields are extension points for this phase. They do not currently process a payment.
+Implemented foundations:
+
+- Owner-scoped payment request records and webhook event history
+- Idempotent server-side Checkout creation
+- Signed webhook reconciliation
+- Stripe test-only card flow for UI and integration development
+- Interac Request Money bank handoff
+- Provider-neutral MAUI gateway interface
+
+Production card charging remains blocked until an approved provider supports the exact peer-to-peer reimbursement model. Stripe's production service cannot be used for this purpose under its current prohibited-business policy.
 
 ## Phase 4: Institution Connectivity
 

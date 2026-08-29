@@ -30,10 +30,12 @@ Money Manager is a cross-platform personal finance app built with .NET MAUI, SQL
 - Store an optional email address or phone number for each participant.
 - Track outstanding, collected, and settled amounts.
 - Mark individual shares paid or unpaid.
-- Share a payment request through the device share sheet.
+- Create and share a Visa/Mastercard Checkout link in the Stripe test sandbox.
+- Prepare Interac Request Money details and hand off to a participating bank website or app.
+- Refresh webhook-verified card test payments into participant settlement status.
 - Sync split and settlement state through the user's Supabase backup.
 
-The current release records settlement status but does not process or hold money. It never collects card numbers or bank credentials.
+The Stripe adapter is test-only because Stripe prohibits personal peer-to-peer money transmission. Interac transfers are authorized and completed in the user's participating bank, outside Money Manager. The app never collects card numbers or bank-login credentials.
 
 ### Banks and Credit Cards
 
@@ -103,7 +105,10 @@ For bank accounts, negative amounts are expenses and positive amounts are income
 
 ### 2. Apply the database migration
 
-Run [`supabase/migrations/202608040001_initial_schema.sql`](supabase/migrations/202608040001_initial_schema.sql) once in the Supabase SQL Editor, or apply it with the Supabase CLI migration workflow.
+Apply the migrations in order through the Supabase CLI migration workflow or SQL Editor:
+
+1. [`supabase/migrations/202608040001_initial_schema.sql`](supabase/migrations/202608040001_initial_schema.sql)
+2. [`supabase/migrations/202608290001_payment_platform.sql`](supabase/migrations/202608290001_payment_platform.sql)
 
 The migration creates:
 
@@ -111,6 +116,8 @@ The migration creates:
 - Row Level Security policies that restrict every backup to its owner
 - A private `statements` Storage bucket with a 10 MB per-file limit
 - Storage policies that restrict statement paths to `<auth-user-id>/...`
+- Owner-scoped payment accounts and payment requests
+- An append-only provider-event table for webhook idempotency and reconciliation
 
 ### 3. Configure the client
 
@@ -142,6 +149,15 @@ The older JWT-style `anon` key is also supported. Do not use a secret key or the
 - Split records use stable transaction GUIDs, so relationships survive a cross-device restore.
 - Cloud backup writes are last-write-wins. Upload from the device with the desired current data before downloading on another device.
 - Raw statement files remain in private Supabase Storage. Downloaded backups restore their metadata, not a device-local copy of each raw file.
+
+## Payment Setup
+
+Payment infrastructure is optional. The app's expense tracking, statements, and manual settlement features work without it.
+
+- Follow [`docs/PAYMENTS.md`](docs/PAYMENTS.md) to deploy the payment migration and Edge Functions.
+- Stripe card checkout is restricted to test mode and does not move real money.
+- Interac Request Money opens the user's configured online-banking URL after copying the request details.
+- Production card or direct-transfer support requires an approved processor/network partner and a replacement production gateway adapter.
 
 ## Getting Started
 
