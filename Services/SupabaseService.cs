@@ -199,6 +199,40 @@ public sealed class SupabaseService : ISupabaseService
         return storagePath;
     }
 
+    public async Task<TResponse> InvokeFunctionAsync<TResponse>(string functionName, object payload)
+    {
+        await EnsureActiveSessionAsync();
+        if (string.IsNullOrWhiteSpace(functionName)
+            || functionName.Any(character => !char.IsLetterOrDigit(character) && character != '-'))
+        {
+            throw new InvalidOperationException("Invalid Supabase function name.");
+        }
+
+        using var request = CreateRequest(
+            HttpMethod.Post,
+            $"/functions/v1/{functionName}",
+            includeAuth: true);
+        request.Content = CreateJsonContent(payload);
+        using var response = await _httpClient.SendAsync(request);
+        return await ReadResponseAsync<TResponse>(response);
+    }
+
+    public async Task<PaymentRequestResult?> GetPaymentRequestAsync(string paymentRequestId)
+    {
+        await EnsureActiveSessionAsync();
+        if (!Guid.TryParse(paymentRequestId, out _))
+            throw new InvalidOperationException("Invalid payment request identifier.");
+
+        var id = Uri.EscapeDataString(paymentRequestId);
+        using var request = CreateRequest(
+            HttpMethod.Get,
+            $"/rest/v1/payment_requests?select=id,status,checkoutUrl:checkout_url,paidAt:paid_at,expiresAt:expires_at&id=eq.{id}&limit=1",
+            includeAuth: true);
+        using var response = await _httpClient.SendAsync(request);
+        var rows = await ReadResponseAsync<List<PaymentRequestResult>>(response);
+        return rows.FirstOrDefault();
+    }
+
     private async Task EnsureActiveSessionAsync()
     {
         EnsureConfigured();

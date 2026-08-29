@@ -13,4 +13,6 @@ public interface ISupabaseService
     Task UpsertBackupAsync(DataBackup backup);
     Task<DataBackup?> GetBackupAsync();
     Task<string> UploadStatementAsync(Stream content, string objectPath, string contentType);
+    Task<TResponse> InvokeFunctionAsync<TResponse>(string functionName, object payload);
+    Task<PaymentRequestResult?> GetPaymentRequestAsync(string paymentRequestId);
 }

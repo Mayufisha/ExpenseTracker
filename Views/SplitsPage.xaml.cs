@@ -10,18 +10,21 @@ public partial class SplitsPage : ContentPage
     private readonly IExpenseService _expenseService;
     private readonly ISplitService _splitService;
     private readonly IPaymentRequestService _paymentRequestService;
+    private readonly IPaymentGatewayService _paymentGatewayService;
 
     public SplitsPage(
         SplitsViewModel viewModel,
         IExpenseService expenseService,
         ISplitService splitService,
-        IPaymentRequestService paymentRequestService)
+        IPaymentRequestService paymentRequestService,
+        IPaymentGatewayService paymentGatewayService)
     {
         InitializeComponent();
         _viewModel = viewModel;
         _expenseService = expenseService;
         _splitService = splitService;
         _paymentRequestService = paymentRequestService;
+        _paymentGatewayService = paymentGatewayService;
         BindingContext = _viewModel;
     }
 
@@ -50,6 +53,7 @@ public partial class SplitsPage : ContentPage
         await Navigation.PushAsync(new SplitDetailsPage(
             split,
             _splitService,
-            _paymentRequestService));
+            _paymentRequestService,
+            _paymentGatewayService));
     }
 }

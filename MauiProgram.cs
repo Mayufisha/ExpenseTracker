@@ -32,6 +32,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IFinancialAccountService>(_ => new SQLiteFinancialAccountService(dbPath));
         builder.Services.AddSingleton<ISplitService>(_ => new SQLiteSplitService(dbPath));
         builder.Services.AddSingleton<IPaymentRequestService, PaymentRequestService>();
+        builder.Services.AddSingleton<IPaymentGatewayService, SupabasePaymentGatewayService>();
         builder.Services.AddSingleton<ICloudStatementSyncService, CloudStatementSyncService>();
         builder.Services.AddSingleton<IStatementImportService>(provider => new StatementImportService(
             provider.GetRequiredService<IFinancialAccountService>(),

@@ -6,15 +6,25 @@ public partial class SettingsPage : ContentPage
 {
     private readonly IBackupService _backupService;
     private readonly IAccountService _accountService;
+    private readonly IPaymentGatewayService _paymentGatewayService;
+    private readonly IPaymentRequestService _paymentRequestService;
 
-    public SettingsPage(IBackupService backupService, IAccountService accountService)
+    public SettingsPage(
+        IBackupService backupService,
+        IAccountService accountService,
+        IPaymentGatewayService paymentGatewayService,
+        IPaymentRequestService paymentRequestService)
     {
         InitializeComponent();
         _backupService = backupService;
         _accountService = accountService;
+        _paymentGatewayService = paymentGatewayService;
+        _paymentRequestService = paymentRequestService;
 
         LoadThemePreference();
         LoadAccountState();
+        ETransferRecipientEntry.Text = _paymentRequestService.ETransferRecipient;
+        OnlineBankingUrlEntry.Text = _paymentRequestService.OnlineBankingUrl;
     }
 
     void LoadThemePreference()
@@ -199,6 +209,41 @@ public partial class SettingsPage : ContentPage
         if (Application.Current is App app)
         {
             app.NavigateToAuth();
+        }
+    }
+
+    async void OnSetupCardPaymentsClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            if (sender is Button button) button.IsEnabled = false;
+            var result = await _paymentGatewayService.StartCardRecipientOnboardingAsync();
+            PaymentStatusLabel.Text = result.ChargesEnabled && result.PayoutsEnabled
+                ? $"Card collection enabled ({result.Mode} mode)."
+                : $"Complete the provider onboarding page ({result.Mode} mode).";
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Payment Setup", ex.Message, "OK");
+        }
+        finally
+        {
+            if (sender is Button button) button.IsEnabled = true;
+        }
+    }
+
+    async void OnSavePaymentPreferencesClicked(object sender, EventArgs e)
+    {
+        try
+        {
+            _paymentRequestService.SavePreferences(
+                ETransferRecipientEntry.Text ?? string.Empty,
+                OnlineBankingUrlEntry.Text ?? string.Empty);
+            PaymentStatusLabel.Text = "Payment preferences saved on this device.";
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Payment Preferences", ex.Message, "OK");
         }
     }
 

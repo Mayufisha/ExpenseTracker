@@ -23,6 +23,7 @@
     <Compile Include="..\\Models\\FinancialAccount.cs" Link="Source\\Models\\FinancialAccount.cs" />
     <Compile Include="..\\Models\\Goal.cs" Link="Source\\Models\\Goal.cs" />
     <Compile Include="..\\Models\\MonthFilterOption.cs" Link="Source\\Models\\MonthFilterOption.cs" />
+    <Compile Include="..\\Models\\PaymentModels.cs" Link="Source\\Models\\PaymentModels.cs" />
     <Compile Include="..\\Models\\MonthlyNetPoint.cs" Link="Source\\Models\\MonthlyNetPoint.cs" />
     <Compile Include="..\\Models\\ParsedStatementTransaction.cs" Link="Source\\Models\\ParsedStatementTransaction.cs" />
     <Compile Include="..\\Models\\ScheduledTransaction.cs" Link="Source\\Models\\ScheduledTransaction.cs" />

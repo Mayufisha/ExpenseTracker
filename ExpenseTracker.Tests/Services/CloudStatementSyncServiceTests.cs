@@ -99,5 +99,9 @@ public class CloudStatementSyncServiceTests
         public Task SignOutAsync() => Task.CompletedTask;
         public Task UpsertBackupAsync(DataBackup backup) => Task.CompletedTask;
         public Task<DataBackup?> GetBackupAsync() => Task.FromResult<DataBackup?>(null);
+        public Task<TResponse> InvokeFunctionAsync<TResponse>(string functionName, object payload) =>
+            throw new NotSupportedException();
+        public Task<PaymentRequestResult?> GetPaymentRequestAsync(string paymentRequestId) =>
+            Task.FromResult<PaymentRequestResult?>(null);
     }
 }

@@ -20,8 +20,13 @@
                 <ProgressBar Progress="{Binding CollectionProgress}" HeightRequest="8" />
                 <Label Text="{Binding StatusDisplay}" FontAttributes="Bold"
                        TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                <Label Text="{Binding UserShare, StringFormat='Your share: ${0:F2}'}"
-                       Style="{StaticResource MutedLabel}" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Text="{Binding UserShare, StringFormat='Your share: ${0:F2}'}"
+                           Style="{StaticResource MutedLabel}" />
+                    <Button Grid.Column="1" Text="Refresh payments"
+                            Style="{StaticResource TextButton}"
+                            Clicked="OnRefreshPaymentsClicked" />
+                </Grid>
             </VerticalStackLayout>
         </Border>
 
@@ -40,15 +45,19 @@
                             <Label Grid.Row="1" Grid.Column="1" Text="{Binding PaymentStatus}"
                                    FontAttributes="Bold"
                                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
-                            <HorizontalStackLayout Grid.Row="2" Grid.ColumnSpan="2" Spacing="8">
-                                <Button Text="Request payment"
+                            <Grid Grid.Row="2" Grid.ColumnSpan="2"
+                                  ColumnDefinitions="*,*,Auto" ColumnSpacing="6">
+                                <Button Text="Card test"
                                         CommandParameter="{Binding .}"
-                                        Clicked="OnRequestPaymentClicked" />
-                                <Button Text="{Binding SettlementAction}"
+                                        Clicked="OnCardRequestClicked" />
+                                <Button Grid.Column="1" Text="e-Transfer"
+                                        CommandParameter="{Binding .}"
+                                        Clicked="OnInteracRequestClicked" />
+                                <Button Grid.Column="2" Text="{Binding SettlementAction}"
                                         Style="{StaticResource TextButton}"
                                         CommandParameter="{Binding .}"
                                         Clicked="OnTogglePaidClicked" />
-                            </HorizontalStackLayout>
+                            </Grid>
                         </Grid>
                     </Border>
                 </DataTemplate>

@@ -34,6 +34,23 @@
             </VerticalStackLayout>
 
             <VerticalStackLayout Spacing="8">
+                <Label Text="Payments" FontAttributes="Bold" />
+                <Label Text="The card flow is a Stripe test sandbox only. Live peer-to-peer charging needs an approved payment-network partner."
+                       Style="{StaticResource MutedLabel}" />
+                <Button Text="Set up card sandbox"
+                        Clicked="OnSetupCardPaymentsClicked" />
+                <Entry x:Name="ETransferRecipientEntry"
+                       Placeholder="Your e-Transfer deposit email or mobile" />
+                <Entry x:Name="OnlineBankingUrlEntry"
+                       Placeholder="Online banking HTTPS URL (optional)"
+                       Keyboard="Url" />
+                <Button Text="Save payment preferences"
+                        Style="{StaticResource TextButton}"
+                        Clicked="OnSavePaymentPreferencesClicked" />
+                <Label x:Name="PaymentStatusLabel" Style="{StaticResource MutedLabel}" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Spacing="8">
                 <Label Text="Account &amp; Cloud Sync"
                        FontAttributes="Bold" />
                 <Label Text="Use the same Supabase account on each device to sync data."
