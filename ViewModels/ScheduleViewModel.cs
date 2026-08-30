@@ -105,6 +105,25 @@ public class ScheduleViewModel : BaseViewModel
         await LoadAsync();
     }
 
+    public async Task SaveScheduleAsync(
+        ScheduledTransaction? item,
+        string note,
+        decimal amount,
+        DateTime date,
+        bool isIncome,
+        string frequency)
+    {
+        item ??= new ScheduledTransaction();
+        item.Note = note;
+        item.Amount = amount;
+        item.ScheduledDate = date;
+        item.IsIncome = isIncome;
+        item.Frequency = frequency;
+
+        await _scheduleService.AddOrUpdateAsync(item);
+        await LoadAsync();
+    }
+
     public async Task DeleteAsync(ScheduledTransaction item)
     {
         if (item == null) return;

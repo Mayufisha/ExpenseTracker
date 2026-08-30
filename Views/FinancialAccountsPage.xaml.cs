@@ -8,6 +8,8 @@ public partial class FinancialAccountsPage : ContentPage
 {
     private readonly FinancialAccountsViewModel _viewModel;
     private readonly IStatementImportService _statementImportService;
+    private FinancialAccount? _editingAccount;
+    private bool _settingEditorValues;
 
     public FinancialAccountsPage(
         FinancialAccountsViewModel viewModel,
@@ -25,23 +27,67 @@ public partial class FinancialAccountsPage : ContentPage
         await _viewModel.LoadAsync();
     }
 
-    private async void OnAddClicked(object sender, EventArgs e)
-    {
-        var account = await PromptForAccountAsync(null);
-        if (account != null)
-            await _viewModel.SaveAccountAsync(account);
-    }
+    private void OnAddClicked(object sender, EventArgs e) => ShowEditor(null);
 
-    private async void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (e.CurrentSelection.Count == 0) return;
         var account = e.CurrentSelection[0] as FinancialAccount;
         ((CollectionView)sender).SelectedItem = null;
-        if (account == null) return;
+        if (account != null) ShowEditor(account);
+    }
 
-        var edited = await PromptForAccountAsync(account);
-        if (edited != null)
-            await _viewModel.SaveAccountAsync(edited);
+    private async void OnSaveAccountClicked(object sender, EventArgs e)
+    {
+        var institution = InstitutionEntry.Text?.Trim() ?? string.Empty;
+        var accountName = AccountNameEntry.Text?.Trim() ?? string.Empty;
+        var lastFour = LastFourEntry.Text?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(institution) || string.IsNullOrWhiteSpace(accountName))
+        {
+            ShowEditorError("Institution and account name are required.");
+            return;
+        }
+
+        if (AccountTypePicker.SelectedIndex < 0 || AmountConventionPicker.SelectedIndex < 0)
+        {
+            ShowEditorError("Choose an account type and statement amount rule.");
+            return;
+        }
+
+        if (lastFour.Length is > 0 and not 4 || lastFour.Any(character => !char.IsDigit(character)))
+        {
+            ShowEditorError("Last four must be exactly four digits or left empty.");
+            return;
+        }
+
+        try
+        {
+            var account = _editingAccount ?? new FinancialAccount();
+            account.InstitutionName = institution;
+            account.AccountName = accountName;
+            account.AccountType = AccountTypePicker.SelectedIndex == 1 ? "Credit Card" : "Bank Account";
+            account.LastFour = lastFour;
+            account.ParsedAmountConvention = AmountConventionPicker.SelectedIndex == 1
+                ? StatementAmountConvention.PositiveAmountsAreExpenses
+                : StatementAmountConvention.NegativeAmountsAreExpenses;
+
+            await _viewModel.SaveAccountAsync(account);
+            PageStatusLabel.Text = $"Saved {account.DisplayName}.";
+            HideEditor();
+        }
+        catch (Exception exception)
+        {
+            ShowEditorError(exception.Message);
+        }
+    }
+
+    private void OnCancelAccountClicked(object sender, EventArgs e) => HideEditor();
+
+    private void OnAccountTypeChanged(object sender, EventArgs e)
+    {
+        if (_settingEditorValues || _editingAccount != null) return;
+        AmountConventionPicker.SelectedIndex = AccountTypePicker.SelectedIndex == 1 ? 1 : 0;
     }
 
     private async void OnAttachStatementClicked(object sender, EventArgs e)
@@ -64,14 +110,15 @@ public partial class FinancialAccountsPage : ContentPage
 
         try
         {
+            PageStatusLabel.Text = $"Importing {file.FileName}...";
             await using var stream = await file.OpenReadAsync();
             var result = await _statementImportService.AttachAndImportAsync(account, stream, file.FileName);
-            await DisplayAlert("Statement Attached", result.Message, "OK");
+            PageStatusLabel.Text = result.Message;
             await _viewModel.LoadAsync();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            await DisplayAlert("Statement Error", ex.Message, "OK");
+            PageStatusLabel.Text = $"Statement error: {exception.Message}";
         }
     }
 
@@ -86,43 +133,43 @@ public partial class FinancialAccountsPage : ContentPage
             "Cancel");
 
         if (confirm)
+        {
             await _viewModel.DeleteAccountAsync(account);
+            PageStatusLabel.Text = $"Deleted {account.DisplayName}.";
+            if (_editingAccount?.Id == account.Id) HideEditor();
+        }
     }
 
-    private async Task<FinancialAccount?> PromptForAccountAsync(FinancialAccount? existing)
+    private void ShowEditor(FinancialAccount? account)
     {
-        var institution = await DisplayPromptAsync(
-            existing == null ? "Add Institution" : "Edit Institution",
-            "Institution name:",
-            initialValue: existing?.InstitutionName ?? string.Empty);
-        if (string.IsNullOrWhiteSpace(institution)) return null;
+        _editingAccount = account;
+        _settingEditorValues = true;
+        EditorTitleLabel.Text = account == null ? "Add financial account" : "Edit financial account";
+        InstitutionEntry.Text = account?.InstitutionName ?? string.Empty;
+        AccountNameEntry.Text = account?.AccountName ?? string.Empty;
+        AccountTypePicker.SelectedIndex = account?.AccountType.Contains("credit", StringComparison.OrdinalIgnoreCase) == true
+            ? 1
+            : 0;
+        LastFourEntry.Text = account?.LastFour ?? string.Empty;
+        AmountConventionPicker.SelectedIndex = account?.ParsedAmountConvention == StatementAmountConvention.PositiveAmountsAreExpenses
+            ? 1
+            : 0;
+        EditorErrorLabel.IsVisible = false;
+        AccountEditor.IsVisible = true;
+        _settingEditorValues = false;
+        InstitutionEntry.Focus();
+    }
 
-        var accountName = await DisplayPromptAsync(
-            "Account",
-            "Account name (e.g. Chequing, Visa):",
-            initialValue: existing?.AccountName ?? string.Empty);
-        if (string.IsNullOrWhiteSpace(accountName)) return null;
+    private void HideEditor()
+    {
+        _editingAccount = null;
+        AccountEditor.IsVisible = false;
+        EditorErrorLabel.IsVisible = false;
+    }
 
-        var accountType = await DisplayActionSheet(
-            "Account Type",
-            "Cancel",
-            null,
-            "Bank Account",
-            "Credit Card");
-        if (accountType == "Cancel" || string.IsNullOrWhiteSpace(accountType)) return null;
-
-        var lastFour = await DisplayPromptAsync(
-            "Account",
-            "Last four digits (optional):",
-            keyboard: Keyboard.Numeric,
-            maxLength: 4,
-            initialValue: existing?.LastFour ?? string.Empty);
-
-        var account = existing ?? new FinancialAccount();
-        account.InstitutionName = institution.Trim();
-        account.AccountName = accountName.Trim();
-        account.AccountType = accountType;
-        account.LastFour = lastFour?.Trim() ?? string.Empty;
-        return account;
+    private void ShowEditorError(string message)
+    {
+        EditorErrorLabel.Text = message;
+        EditorErrorLabel.IsVisible = true;
     }
 }

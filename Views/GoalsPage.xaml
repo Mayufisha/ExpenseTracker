@@ -7,71 +7,91 @@
     xmlns:models="clr-namespace:ExpenseTracker.Models"
     x:DataType="viewmodels:GoalsViewModel">
 
-    <Grid>
-        <ScrollView>
-            <VerticalStackLayout Padding="16" Spacing="16">
-
-                <Label Text="Goals &amp; Achievements"
-                       FontSize="28"
-                       FontAttributes="Bold" />
-
-                <Picker ItemsSource="{Binding MonthFilters}"
-                        ItemDisplayBinding="{Binding Label}"
-                        SelectedItem="{Binding SelectedMonthFilter}"
-                        Title="Filter by month" />
-
-                <CollectionView ItemsSource="{Binding Goals}"
-                                SelectionMode="Single"
-                                SelectionChanged="OnSelectionChanged">
-                    <CollectionView.EmptyView>
-                        <VerticalStackLayout Padding="16" Spacing="8">
-                            <Label Text="No goals yet."
-                                   FontAttributes="Bold" />
-                            <Label Text="Tap + to create your first savings goal."
-                                   Style="{StaticResource MutedLabel}" />
-                        </VerticalStackLayout>
-                    </CollectionView.EmptyView>
-                    <CollectionView.ItemTemplate>
-                        <DataTemplate x:DataType="models:Goal">
-                            <SwipeView>
-                                <SwipeView.RightItems>
-                                    <SwipeItems Mode="Reveal">
-                                        <SwipeItem Text="Delete"
-                                                   Style="{StaticResource DangerSwipeItem}"
-                                                   Invoked="OnDeleteSwipeInvoked" />
-                                    </SwipeItems>
-                                </SwipeView.RightItems>
-
-                                <Border StrokeShape="RoundRectangle 16"
-                                        Padding="12"
-                                        Margin="0,4">
-                                    <VerticalStackLayout Spacing="4">
-                                        <Label Text="{Binding Name}"
-                                               FontAttributes="Bold" />
-                                        <Label Text="{Binding TargetAmount, StringFormat='Target: ${0:F2}'}"
-                                               FontSize="12"
-                                               Style="{StaticResource MutedLabel}" />
-                                        <ProgressBar Progress="{Binding Progress}" />
-                                        <Label Text="{Binding CurrentAmount, StringFormat='Saved: ${0:F2}'}"
-                                               FontSize="12" />
-                                    </VerticalStackLayout>
-                                </Border>
-                            </SwipeView>
-                        </DataTemplate>
-                    </CollectionView.ItemTemplate>
-                </CollectionView>
-
+    <Grid Padding="16" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="14">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Goals &amp; Achievements" FontSize="28" FontAttributes="Bold" />
+                <Label Text="Create, edit, and track goals without leaving this page."
+                       Style="{StaticResource MutedLabel}" />
             </VerticalStackLayout>
-        </ScrollView>
+            <Button Grid.Column="1" Text="Add goal" Clicked="OnAddClicked" />
+        </Grid>
 
-        <Button Text="+"
-                WidthRequest="56"
-                HeightRequest="56"
-                CornerRadius="28"
-                FontSize="24"
-                HorizontalOptions="End"
-                VerticalOptions="End"
-                Margin="24"
-                Clicked="OnAddClicked" />
+        <Border x:Name="GoalEditor" Grid.Row="1" Padding="16" IsVisible="False">
+            <VerticalStackLayout Spacing="12">
+                <Label x:Name="GoalEditorTitle" Text="Add goal" FontSize="20" FontAttributes="Bold" />
+                <FlexLayout Direction="Row" Wrap="Wrap" AlignItems="End">
+                    <VerticalStackLayout WidthRequest="240" Margin="0,0,12,8" Spacing="4">
+                        <Label Text="Goal name" Style="{StaticResource MutedLabel}" />
+                        <Entry x:Name="GoalNameEntry" Placeholder="Emergency fund, vacation, home" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout WidthRequest="170" Margin="0,0,12,8" Spacing="4">
+                        <Label Text="Target amount" Style="{StaticResource MutedLabel}" />
+                        <Entry x:Name="GoalTargetEntry" Keyboard="Numeric" Placeholder="0.00" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout WidthRequest="170" Margin="0,0,12,8" Spacing="4">
+                        <Label Text="Already saved" Style="{StaticResource MutedLabel}" />
+                        <Entry x:Name="GoalSavedEntry" Keyboard="Numeric" Placeholder="0.00" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout WidthRequest="190" Margin="0,0,12,8" Spacing="4">
+                        <HorizontalStackLayout Spacing="8">
+                            <Label Text="Deadline" Style="{StaticResource MutedLabel}" />
+                            <Switch x:Name="GoalDeadlineSwitch"
+                                    Toggled="OnGoalDeadlineToggled" />
+                        </HorizontalStackLayout>
+                        <DatePicker x:Name="GoalDeadlinePicker" IsEnabled="False" />
+                    </VerticalStackLayout>
+                </FlexLayout>
+                <Label x:Name="GoalEditorError" TextColor="{StaticResource Danger}" IsVisible="False" />
+                <HorizontalStackLayout Spacing="10">
+                    <Button Text="Save goal" Clicked="OnSaveGoalClicked" />
+                    <Button Text="Cancel" Style="{StaticResource TextButton}" Clicked="OnCancelGoalClicked" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <Label x:Name="GoalStatusLabel" VerticalOptions="Center" Style="{StaticResource MutedLabel}" />
+            <Picker Grid.Column="1"
+                    WidthRequest="210"
+                    ItemsSource="{Binding MonthFilters}"
+                    ItemDisplayBinding="{Binding Label}"
+                    SelectedItem="{Binding SelectedMonthFilter}"
+                    Title="Filter by month" />
+        </Grid>
+
+        <CollectionView Grid.Row="3"
+                        ItemsSource="{Binding Goals}"
+                        SelectionMode="Single"
+                        SelectionChanged="OnSelectionChanged">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="16" Spacing="8">
+                    <Label Text="No goals for this user yet." FontAttributes="Bold" />
+                    <Label Text="Select Add goal to create one." Style="{StaticResource MutedLabel}" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Goal">
+                    <SwipeView>
+                        <SwipeView.RightItems>
+                            <SwipeItems Mode="Reveal">
+                                <SwipeItem Text="Delete"
+                                           Style="{StaticResource DangerSwipeItem}"
+                                           Invoked="OnDeleteSwipeInvoked" />
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+                        <Border StrokeShape="RoundRectangle 16" Padding="12" Margin="0,4">
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding Name}" FontAttributes="Bold" />
+                                <Label Text="{Binding TargetAmount, StringFormat='Target: ${0:F2}'}"
+                                       Style="{StaticResource MutedLabel}" />
+                                <ProgressBar Progress="{Binding Progress}" />
+                                <Label Text="{Binding CurrentAmount, StringFormat='Saved: ${0:F2}'}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
     </Grid>
 </ContentPage>

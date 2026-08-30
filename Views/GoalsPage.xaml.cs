@@ -1,4 +1,5 @@
-﻿using ExpenseTracker.Models;
+using System.Globalization;
+using ExpenseTracker.Models;
 using ExpenseTracker.ViewModels;
 
 namespace ExpenseTracker.Views;
@@ -6,6 +7,7 @@ namespace ExpenseTracker.Views;
 public partial class GoalsPage : ContentPage
 {
     private readonly GoalsViewModel _viewModel;
+    private Goal? _editingGoal;
 
     public GoalsPage(GoalsViewModel viewModel)
     {
@@ -20,90 +22,85 @@ public partial class GoalsPage : ContentPage
         await _viewModel.LoadAsync();
     }
 
-    async void OnAddClicked(object sender, EventArgs e)
-    {
-        var name = await DisplayPromptAsync("New Goal", "Goal name:");
-        if (string.IsNullOrWhiteSpace(name))
-            return;
+    private void OnAddClicked(object sender, EventArgs e) => ShowEditor(null);
 
-        var targetText = await DisplayPromptAsync("Target Amount", "Enter target amount:", keyboard: Keyboard.Numeric);
-        if (!decimal.TryParse(targetText, out var target) || target <= 0)
+    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (e.CurrentSelection.Count == 0) return;
+        var goal = e.CurrentSelection[0] as Goal;
+        ((CollectionView)sender).SelectedItem = null;
+        if (goal != null) ShowEditor(goal);
+    }
+
+    private async void OnSaveGoalClicked(object sender, EventArgs e)
+    {
+        var name = GoalNameEntry.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(name)
+            || !TryParseAmount(GoalTargetEntry.Text, out var target)
+            || target <= 0
+            || !TryParseAmount(GoalSavedEntry.Text, out var saved)
+            || saved < 0)
         {
-            await DisplayAlert("Invalid", "Please enter a valid amount.", "OK");
+            ShowError("Enter a name, a target above zero, and a saved amount of zero or more.");
             return;
         }
 
-        await _viewModel.AddSimpleGoalAsync(name.Trim(), target);
+        var goal = _editingGoal ?? new Goal();
+        await _viewModel.UpdateGoalAsync(
+            goal,
+            name,
+            target,
+            saved,
+            GoalDeadlineSwitch.IsToggled ? GoalDeadlinePicker.Date.Date : null);
+        GoalStatusLabel.Text = $"Saved {name}.";
+        HideEditor();
     }
 
-    async void OnDeleteSwipeInvoked(object sender, EventArgs e)
+    private void OnCancelGoalClicked(object sender, EventArgs e) => HideEditor();
+
+    private void OnGoalDeadlineToggled(object sender, ToggledEventArgs e) =>
+        GoalDeadlinePicker.IsEnabled = e.Value;
+
+    private async void OnDeleteSwipeInvoked(object sender, EventArgs e)
     {
-        if (sender is not SwipeItem swipeItem) return;
-        if (swipeItem.BindingContext is not Goal goal) return;
-
-        var confirm = await DisplayAlert(
-            "Delete Goal",
-            $"Delete goal \"{goal.Name}\"?",
-            "Yes", "No");
-
+        if (sender is not SwipeItem { BindingContext: Goal goal }) return;
+        var confirm = await DisplayAlert("Delete Goal", $"Delete goal \"{goal.Name}\"?", "Delete", "Cancel");
         if (!confirm) return;
 
         await _viewModel.DeleteGoalAsync(goal);
+        GoalStatusLabel.Text = $"Deleted {goal.Name}.";
+        if (_editingGoal?.Id == goal.Id) HideEditor();
     }
 
-    async void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void ShowEditor(Goal? goal)
     {
-        if (e.CurrentSelection == null || e.CurrentSelection.Count == 0)
-            return;
-
-        var goal = e.CurrentSelection[0] as Goal;
-        ((CollectionView)sender).SelectedItem = null;
-        if (goal == null) return;
-
-        var name = await DisplayPromptAsync("Edit Goal", "Goal name:", initialValue: goal.Name);
-        if (string.IsNullOrWhiteSpace(name))
-            return;
-
-        var targetText = await DisplayPromptAsync(
-            "Edit Goal",
-            "Target amount:",
-            keyboard: Keyboard.Numeric,
-            initialValue: goal.TargetAmount.ToString("0.##"));
-        if (!decimal.TryParse(targetText, out var target) || target <= 0)
-        {
-            await DisplayAlert("Invalid", "Please enter a valid target amount.", "OK");
-            return;
-        }
-
-        var savedText = await DisplayPromptAsync(
-            "Edit Goal",
-            "Saved amount:",
-            keyboard: Keyboard.Numeric,
-            initialValue: goal.CurrentAmount.ToString("0.##"));
-        if (!decimal.TryParse(savedText, out var saved) || saved < 0)
-        {
-            await DisplayAlert("Invalid", "Please enter a valid saved amount.", "OK");
-            return;
-        }
-
-        var deadlineValue = goal.Deadline?.ToString("yyyy-MM-dd") ?? string.Empty;
-        var deadlineText = await DisplayPromptAsync(
-            "Edit Goal",
-            "Deadline (YYYY-MM-DD), or leave blank:",
-            initialValue: deadlineValue);
-
-        DateTime? deadline = null;
-        if (!string.IsNullOrWhiteSpace(deadlineText))
-        {
-            if (!DateTime.TryParse(deadlineText, out var parsedDeadline))
-            {
-                await DisplayAlert("Invalid", "Please enter a valid date.", "OK");
-                return;
-            }
-
-            deadline = parsedDeadline.Date;
-        }
-
-        await _viewModel.UpdateGoalAsync(goal, name.Trim(), target, saved, deadline);
+        _editingGoal = goal;
+        GoalEditorTitle.Text = goal == null ? "Add goal" : "Edit goal";
+        GoalNameEntry.Text = goal?.Name ?? string.Empty;
+        GoalTargetEntry.Text = goal?.TargetAmount.ToString("0.##", CultureInfo.CurrentCulture) ?? string.Empty;
+        GoalSavedEntry.Text = goal?.CurrentAmount.ToString("0.##", CultureInfo.CurrentCulture) ?? "0";
+        GoalDeadlineSwitch.IsToggled = goal?.Deadline.HasValue == true;
+        GoalDeadlinePicker.Date = goal?.Deadline?.Date ?? DateTime.Today.AddMonths(1);
+        GoalDeadlinePicker.IsEnabled = GoalDeadlineSwitch.IsToggled;
+        GoalEditorError.IsVisible = false;
+        GoalEditor.IsVisible = true;
+        GoalNameEntry.Focus();
     }
+
+    private void HideEditor()
+    {
+        _editingGoal = null;
+        GoalEditor.IsVisible = false;
+        GoalEditorError.IsVisible = false;
+    }
+
+    private void ShowError(string message)
+    {
+        GoalEditorError.Text = message;
+        GoalEditorError.IsVisible = true;
+    }
+
+    private static bool TryParseAmount(string? text, out decimal amount) =>
+        decimal.TryParse(text, NumberStyles.Number, CultureInfo.CurrentCulture, out amount)
+        || decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out amount);
 }

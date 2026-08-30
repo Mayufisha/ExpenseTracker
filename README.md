@@ -9,6 +9,7 @@ Money Manager is a cross-platform personal finance app built with .NET MAUI, SQL
 - Login or signup is required before financial data can be accessed.
 - The app connects to the fixed local development server automatically; users are never asked for backend URLs or API keys.
 - The active local-server session is stored in the platform secure-storage service and validated when the app starts again.
+- Every SQLite row for transactions, goals, schedules, accounts, statements, and splits is scoped to the authenticated user ID.
 - Users can sign out from Settings.
 - Account data can be uploaded to or downloaded from the signed-in user's local-server backup.
 
@@ -44,6 +45,8 @@ The Stripe adapter is test-only because Stripe prohibits personal peer-to-peer m
 - Record institution name, account name/type, and optional last four digits.
 - Attach CSV or PDF bank and credit-card statements.
 - CSV statements import transactions automatically.
+- Configure whether positive or negative values represent expenses when a CSV has one `Amount` column.
+- CSV files with separate debit and credit columns are classified automatically without using the amount-sign setting.
 - Statements are stored in the app's private data directory. Private Supabase Storage upload is retained for the future hosted backend.
 - Duplicate statement files are detected using a SHA-256 file hash.
 - When the hosted backend is enabled, failed statement uploads remain pending locally for retry.
@@ -51,7 +54,8 @@ The Stripe adapter is test-only because Stripe prohibits personal peer-to-peer m
 ### Goals and Schedule
 
 - Add, edit, and delete savings goals with monthly deadline filtering.
-- Add and delete scheduled payments with monthly filtering.
+- Add, edit, and delete scheduled income or payments with monthly filtering.
+- Goals, schedules, and financial accounts use full inline editors instead of chained prompt dialogs.
 
 ### Settings and Appearance
 
@@ -68,7 +72,7 @@ The importer recognizes common column names used by financial institutions:
 - Amount: `Amount` or `Transaction Amount`
 - Separate amount columns: `Debit`/`Withdrawal`/`Charge` and `Credit`/`Deposit`/`Payment`
 
-For bank accounts, negative amounts are expenses and positive amounts are income. For credit cards, positive amounts are treated as charges and negative amounts as credits/refunds.
+For a single `Amount` column, each account stores the institution's sign convention. Bank accounts default to negative expenses; credit cards default to positive expenses. Change the rule in the inline account editor when an institution exports the opposite format.
 
 ## Architecture
 
@@ -89,14 +93,15 @@ For bank accounts, negative amounts are expenses and positive amounts are income
 ## Data Storage and Privacy
 
 - Local database: `expenses.db3`
-- Statement files: private application data under `Statements/`
+- User-owned database rows include an indexed `OwnerUserId`; records without an owner from pre-account builds are not shown to any newly authenticated user.
+- Statement files: private application data under `Statements/<user-id>/`
 - Development account backup: one JSON snapshot per authenticated user in the local server store
 - Future cloud backup: one versioned JSONB snapshot per authenticated user in PostgreSQL
 - Future statement storage: private `statements` bucket, scoped by Supabase user ID
 - Active development session token: platform `SecureStorage`
 - Institution definitions and imported transaction data are included in backup/cloud sync.
 - Local filesystem paths are never included in cloud backups.
-- Split participants, shares, and settlement state are included in backup version 3.
+- Split participants, shares, settlement state, and statement amount conventions are included in backup version 4.
 - The publishable/anon key may be bundled in the client. Never place a Supabase `service_role` or secret key in this app.
 
 ## Local Development Server

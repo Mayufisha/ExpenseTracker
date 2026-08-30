@@ -1,13 +1,13 @@
-﻿using System;
+using System.Globalization;
 using ExpenseTracker.Models;
 using ExpenseTracker.ViewModels;
-using Microsoft.Maui.Controls;
 
 namespace ExpenseTracker.Views;
 
 public partial class SchedulePage : ContentPage
 {
     private readonly ScheduleViewModel _viewModel;
+    private ScheduledTransaction? _editingItem;
 
     public SchedulePage(ScheduleViewModel viewModel)
     {
@@ -19,53 +19,110 @@ public partial class SchedulePage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-
         try
         {
             await _viewModel.LoadAsync();
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            await DisplayAlert("Schedule error", ex.Message, "OK");
+            ScheduleStatusLabel.Text = $"Schedule error: {exception.Message}";
         }
     }
 
-    async void OnAddClicked(object sender, EventArgs e)
+    private void OnAddClicked(object sender, EventArgs e) => ShowEditor(null);
+
+    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var note = await DisplayPromptAsync("New Scheduled Item", "Description:");
-        if (string.IsNullOrWhiteSpace(note))
-            return;
-
-        var amountText = await DisplayPromptAsync("Amount", "Enter amount:", keyboard: Keyboard.Numeric);
-        if (!decimal.TryParse(amountText, out var amount) || amount <= 0)
-        {
-            await DisplayAlert("Invalid", "Please enter a valid amount.", "OK");
-            return;
-        }
-
-        var dateText = await DisplayPromptAsync("Date", "Enter date (YYYY-MM-DD):");
-        if (!DateTime.TryParse(dateText, out var date))
-        {
-            await DisplayAlert("Invalid", "Please enter a valid date.", "OK");
-            return;
-        }
-
-        await _viewModel.AddSimpleScheduleAsync(note.Trim(), amount, date);
+        if (e.CurrentSelection.Count == 0) return;
+        var item = e.CurrentSelection[0] as ScheduledTransaction;
+        ((CollectionView)sender).SelectedItem = null;
+        if (item != null) ShowEditor(item);
     }
 
-    async void OnDeleteSwipeInvoked(object sender, EventArgs e)
+    private async void OnSaveScheduleClicked(object sender, EventArgs e)
     {
-        if (sender is not SwipeItem swipeItem) return;
-        if (swipeItem.BindingContext is not ScheduledTransaction item) return;
+        var note = ScheduleNoteEntry.Text?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(note)
+            || !TryParseAmount(ScheduleAmountEntry.Text, out var amount)
+            || amount <= 0)
+        {
+            ShowError("Enter a description and an amount above zero.");
+            return;
+        }
 
+        if (ScheduleTypePicker.SelectedIndex < 0 || ScheduleFrequencyPicker.SelectedIndex < 0)
+        {
+            ShowError("Choose a type and frequency.");
+            return;
+        }
+
+        var frequency = ScheduleFrequencyPicker.SelectedIndex switch
+        {
+            1 => "Weekly",
+            2 => "Monthly",
+            _ => "None"
+        };
+        await _viewModel.SaveScheduleAsync(
+            _editingItem,
+            note,
+            amount,
+            ScheduleDatePicker.Date.Date,
+            ScheduleTypePicker.SelectedIndex == 1,
+            frequency);
+        ScheduleStatusLabel.Text = $"Saved {note}.";
+        HideEditor();
+    }
+
+    private void OnCancelScheduleClicked(object sender, EventArgs e) => HideEditor();
+
+    private async void OnDeleteSwipeInvoked(object sender, EventArgs e)
+    {
+        if (sender is not SwipeItem { BindingContext: ScheduledTransaction item }) return;
         var confirm = await DisplayAlert(
-            "Delete",
+            "Delete Scheduled Item",
             $"Delete scheduled item \"{item.Note}\"?",
-            "Yes", "No");
-
+            "Delete",
+            "Cancel");
         if (!confirm) return;
 
         await _viewModel.DeleteAsync(item);
+        ScheduleStatusLabel.Text = $"Deleted {item.Note}.";
+        if (_editingItem?.Id == item.Id) HideEditor();
     }
 
+    private void ShowEditor(ScheduledTransaction? item)
+    {
+        _editingItem = item;
+        ScheduleEditorTitle.Text = item == null ? "Add scheduled item" : "Edit scheduled item";
+        ScheduleNoteEntry.Text = item?.Note ?? string.Empty;
+        ScheduleAmountEntry.Text = item?.Amount.ToString("0.##", CultureInfo.CurrentCulture) ?? string.Empty;
+        ScheduleDatePicker.Date = item?.ScheduledDate.Date ?? DateTime.Today;
+        ScheduleTypePicker.SelectedIndex = item?.IsIncome == true ? 1 : 0;
+        ScheduleFrequencyPicker.SelectedIndex = item?.Frequency switch
+        {
+            "Weekly" => 1,
+            "Monthly" => 2,
+            _ => 0
+        };
+        ScheduleEditorError.IsVisible = false;
+        ScheduleEditor.IsVisible = true;
+        ScheduleNoteEntry.Focus();
+    }
+
+    private void HideEditor()
+    {
+        _editingItem = null;
+        ScheduleEditor.IsVisible = false;
+        ScheduleEditorError.IsVisible = false;
+    }
+
+    private void ShowError(string message)
+    {
+        ScheduleEditorError.Text = message;
+        ScheduleEditorError.IsVisible = true;
+    }
+
+    private static bool TryParseAmount(string? text, out decimal amount) =>
+        decimal.TryParse(text, NumberStyles.Number, CultureInfo.CurrentCulture, out amount)
+        || decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out amount);
 }

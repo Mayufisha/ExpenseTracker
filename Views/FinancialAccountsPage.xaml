@@ -7,22 +7,97 @@
     xmlns:models="clr-namespace:ExpenseTracker.Models"
     x:DataType="viewmodels:FinancialAccountsViewModel">
 
-    <Grid>
-        <VerticalStackLayout Padding="16" Spacing="14">
-            <Label Text="Banks &amp; Credit Cards"
-                   FontSize="28"
-                   FontAttributes="Bold" />
-            <Label Text="Attach CSV statements to import transactions. PDF statements are stored for reference."
-                   Style="{StaticResource MutedLabel}" />
+    <Grid Padding="16"
+          RowDefinitions="Auto,Auto,*"
+          RowSpacing="14">
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <VerticalStackLayout Spacing="4">
+                <Label Text="Banks &amp; Credit Cards"
+                       FontSize="28"
+                       FontAttributes="Bold" />
+                <Label Text="Manage accounts and statement import rules in one workspace."
+                       Style="{StaticResource MutedLabel}" />
+            </VerticalStackLayout>
+            <Button Grid.Column="1"
+                    Text="Add account"
+                    Clicked="OnAddClicked" />
+        </Grid>
 
-            <CollectionView ItemsSource="{Binding Accounts}"
+        <Border x:Name="AccountEditor"
+                Grid.Row="1"
+                Padding="16"
+                IsVisible="False">
+            <VerticalStackLayout Spacing="12">
+                <Label x:Name="EditorTitleLabel"
+                       Text="Add financial account"
+                       FontSize="20"
+                       FontAttributes="Bold" />
+
+                <FlexLayout Direction="Row"
+                            Wrap="Wrap"
+                            AlignItems="End"
+                            JustifyContent="Start">
+                    <VerticalStackLayout WidthRequest="220" Margin="0,0,12,8" Spacing="4">
+                        <Label Text="Institution" Style="{StaticResource MutedLabel}" />
+                        <Entry x:Name="InstitutionEntry" Placeholder="Bank or card issuer" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout WidthRequest="220" Margin="0,0,12,8" Spacing="4">
+                        <Label Text="Account name" Style="{StaticResource MutedLabel}" />
+                        <Entry x:Name="AccountNameEntry" Placeholder="Chequing, Visa, Savings" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout WidthRequest="170" Margin="0,0,12,8" Spacing="4">
+                        <Label Text="Account type" Style="{StaticResource MutedLabel}" />
+                        <Picker x:Name="AccountTypePicker"
+                                SelectedIndexChanged="OnAccountTypeChanged">
+                            <Picker.Items>
+                                <x:String>Bank Account</x:String>
+                                <x:String>Credit Card</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </VerticalStackLayout>
+                    <VerticalStackLayout WidthRequest="130" Margin="0,0,12,8" Spacing="4">
+                        <Label Text="Last four" Style="{StaticResource MutedLabel}" />
+                        <Entry x:Name="LastFourEntry"
+                               Placeholder="Optional"
+                               Keyboard="Numeric"
+                               MaxLength="4" />
+                    </VerticalStackLayout>
+                    <VerticalStackLayout WidthRequest="250" Margin="0,0,12,8" Spacing="4">
+                        <Label Text="For a single Amount column" Style="{StaticResource MutedLabel}" />
+                        <Picker x:Name="AmountConventionPicker">
+                            <Picker.Items>
+                                <x:String>Negative values are expenses</x:String>
+                                <x:String>Positive values are expenses</x:String>
+                            </Picker.Items>
+                        </Picker>
+                    </VerticalStackLayout>
+                </FlexLayout>
+
+                <Label Text="CSV files with separate Debit and Credit columns are detected automatically. The amount rule only applies when the file has one Amount column."
+                       Style="{StaticResource MutedLabel}" />
+                <Label x:Name="EditorErrorLabel"
+                       TextColor="{StaticResource Danger}"
+                       IsVisible="False" />
+                <HorizontalStackLayout Spacing="10">
+                    <Button Text="Save account" Clicked="OnSaveAccountClicked" />
+                    <Button Text="Cancel"
+                            Style="{StaticResource TextButton}"
+                            Clicked="OnCancelAccountClicked" />
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+        </Border>
+
+        <Grid Grid.Row="2" RowDefinitions="Auto,*" RowSpacing="8">
+            <Label x:Name="PageStatusLabel" Style="{StaticResource MutedLabel}" />
+            <CollectionView Grid.Row="1"
+                            ItemsSource="{Binding Accounts}"
                             SelectionMode="Single"
                             SelectionChanged="OnSelectionChanged">
                 <CollectionView.EmptyView>
                     <VerticalStackLayout Padding="16" Spacing="8">
-                        <Label Text="No financial accounts yet."
+                        <Label Text="No financial accounts for this user yet."
                                FontAttributes="Bold" />
-                        <Label Text="Tap + to add your bank or credit card."
+                        <Label Text="Select Add account to create one."
                                Style="{StaticResource MutedLabel}" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
@@ -42,20 +117,20 @@
                                 <Grid RowDefinitions="Auto,Auto,Auto"
                                       ColumnDefinitions="*,Auto">
                                     <Label Grid.Row="0"
-                                           Grid.Column="0"
                                            Text="{Binding DisplayName}"
                                            FontAttributes="Bold" />
                                     <Label Grid.Row="1"
-                                           Grid.Column="0"
                                            Text="{Binding AccountType}"
                                            Style="{StaticResource MutedLabel}" />
-                                    <Label Grid.Row="2"
-                                           Grid.Column="0"
-                                           Text="{Binding StatementCount, StringFormat='Statements: {0}'}"
-                                           Style="{StaticResource MutedLabel}" />
+                                    <HorizontalStackLayout Grid.Row="2" Spacing="12">
+                                        <Label Text="{Binding StatementCount, StringFormat='Statements: {0}'}"
+                                               Style="{StaticResource MutedLabel}" />
+                                        <Label Text="{Binding AmountConventionDisplay}"
+                                               Style="{StaticResource MutedLabel}" />
+                                    </HorizontalStackLayout>
                                     <Button Grid.RowSpan="3"
                                             Grid.Column="1"
-                                            Text="Attach"
+                                            Text="Attach statement"
                                             CommandParameter="{Binding .}"
                                             Clicked="OnAttachStatementClicked" />
                                 </Grid>
@@ -64,16 +139,6 @@
                     </DataTemplate>
                 </CollectionView.ItemTemplate>
             </CollectionView>
-        </VerticalStackLayout>
-
-        <Button Text="+"
-                WidthRequest="56"
-                HeightRequest="56"
-                CornerRadius="28"
-                FontSize="24"
-                HorizontalOptions="End"
-                VerticalOptions="End"
-                Margin="24"
-                Clicked="OnAddClicked" />
+        </Grid>
     </Grid>
 </ContentPage>
