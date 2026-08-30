@@ -44,10 +44,12 @@ The Stripe adapter is test-only because Stripe prohibits personal peer-to-peer m
 - Add and edit accounts from multiple financial institutions.
 - Record institution name, account name/type, and optional last four digits.
 - Attach CSV or PDF bank and credit-card statements.
-- CSV statements import transactions automatically.
+- CSV and text-based PDF statements import transactions automatically.
+- E-Transfers default to expenses; transfers marked `received`, `from`, `incoming`, or `autodeposit` are income.
+- Existing imported transfers with these direction markers are corrected when transactions load.
 - Configure whether positive or negative values represent expenses when a CSV has one `Amount` column.
 - CSV files with separate debit and credit columns are classified automatically without using the amount-sign setting.
-- Statements are stored in the app's private data directory. Private Supabase Storage upload is retained for the future hosted backend.
+- Statements are stored in the app's private data directory. Scanned-image PDFs require OCR or a CSV export. Private Supabase Storage upload is retained for the future hosted backend.
 - Duplicate statement files are detected using a SHA-256 file hash.
 - When the hosted backend is enabled, failed statement uploads remain pending locally for retry.
 
@@ -87,6 +89,7 @@ For a single `Amount` column, each account stores the institution's sign convent
 - .NET 9 MAUI
 - ASP.NET Core local development server
 - SQLite (`sqlite-net-pcl`)
+- PDF text extraction (`PdfPig`)
 - Supabase Auth, PostgreSQL, Data REST API, and Storage for the future hosted backend
 - Charts (`Microcharts.Maui`)
 

@@ -99,6 +99,13 @@ public class SQLiteExpenseService : IExpenseService
             {
                 t.Type = t.IsIncome ? TransactionType.Income.ToString() : TransactionType.Expense.ToString();
             }
+
+            var correctedType = StatementTransactionClassifier.Classify(t.Note, t.ParsedType);
+            if (correctedType != t.ParsedType)
+            {
+                t.ParsedType = correctedType;
+                await _db.UpdateAsync(t);
+            }
         }
 
         return txs;

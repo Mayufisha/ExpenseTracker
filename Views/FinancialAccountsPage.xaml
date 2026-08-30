@@ -15,7 +15,7 @@
                 <Label Text="Banks &amp; Credit Cards"
                        FontSize="28"
                        FontAttributes="Bold" />
-                <Label Text="Manage accounts and statement import rules in one workspace."
+                <Label Text="Import transactions from CSV and text-based PDF statements in one workspace."
                        Style="{StaticResource MutedLabel}" />
             </VerticalStackLayout>
             <Button Grid.Column="1"

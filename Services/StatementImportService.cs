@@ -56,11 +56,11 @@ public class StatementImportService : IStatementImportService
             if (await _accountService.HasStatementAsync(account.Id, fileHash))
                 throw new InvalidOperationException("This statement is already attached to the account.");
 
-            var importedCount = 0;
-            if (extension == ".csv")
-            {
-                importedCount = await ImportCsvTransactionsAsync(account, storedPath, originalFileName);
-            }
+            var importedCount = await ImportTransactionsAsync(
+                account,
+                storedPath,
+                originalFileName,
+                extension);
 
             await _accountService.AddStatementAsync(new StatementAttachment
             {
@@ -87,10 +87,8 @@ public class StatementImportService : IStatementImportService
             return new StatementImportResult
             {
                 ImportedTransactionCount = importedCount,
-                TransactionsImported = extension == ".csv",
-                Message = extension == ".csv"
-                    ? $"Attached statement and imported {importedCount} transactions.{cloudMessage}"
-                    : $"Attached PDF statement. Use a CSV export to import transactions automatically.{cloudMessage}"
+                TransactionsImported = importedCount > 0,
+                Message = $"Attached {extension.TrimStart('.').ToUpperInvariant()} statement and imported {importedCount} transactions.{cloudMessage}"
             };
         }
         catch
@@ -100,14 +98,15 @@ public class StatementImportService : IStatementImportService
         }
     }
 
-    private async Task<int> ImportCsvTransactionsAsync(
+    private async Task<int> ImportTransactionsAsync(
         FinancialAccount account,
         string storedPath,
-        string originalFileName)
+        string originalFileName,
+        string extension)
     {
-        var parsedTransactions = await CsvStatementParser.ParseAsync(
-            storedPath,
-            account.ParsedAmountConvention);
+        var parsedTransactions = extension == ".pdf"
+            ? await PdfStatementParser.ParseAsync(storedPath, account.ParsedAmountConvention)
+            : await CsvStatementParser.ParseAsync(storedPath, account.ParsedAmountConvention);
         var categories = await _expenseService.GetCategoriesAsync();
         var fallbackCategory = categories.FirstOrDefault(c =>
             c.Name.Equals("Other", StringComparison.OrdinalIgnoreCase)) ?? categories.First();

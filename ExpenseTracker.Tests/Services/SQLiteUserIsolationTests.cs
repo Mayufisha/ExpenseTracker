@@ -44,6 +44,38 @@ public class SQLiteUserIsolationTests
     }
 
     [Fact]
+    public async Task GetTransactionsAsync_CorrectsExistingOutgoingETransfer()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"money-manager-transfer-{Guid.NewGuid():N}.db3");
+        var userContext = new UserDataContext();
+        userContext.SetCurrentUser("transfer-user");
+        var expenses = new SQLiteExpenseService(path, userContext);
+
+        try
+        {
+            var category = (await expenses.GetCategoriesAsync()).First();
+            var transaction = new Transaction
+            {
+                Amount = 85m,
+                CategoryId = category.Id,
+                Date = DateTime.Today,
+                Note = "INTERAC E-TRANSFER SENT TO ALEX"
+            };
+            transaction.ParsedType = TransactionType.Income;
+            await expenses.AddOrUpdateTransactionAsync(transaction);
+
+            var corrected = Assert.Single(await expenses.GetTransactionsAsync());
+
+            Assert.Equal(TransactionType.Expense, corrected.ParsedType);
+        }
+        finally
+        {
+            await expenses.CloseAsync();
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
     public async Task Services_OnlyReadAndClearRowsOwnedByCurrentUser()
     {
         var path = Path.Combine(Path.GetTempPath(), $"money-manager-users-{Guid.NewGuid():N}.db3");

@@ -11,6 +11,7 @@ public static class CsvStatementParser
     private static readonly string[] AmountHeaders = ["amount", "transactionamount"];
     private static readonly string[] DebitHeaders = ["debit", "withdrawal", "charge"];
     private static readonly string[] CreditHeaders = ["credit", "deposit", "payment"];
+    private static readonly string[] DirectionHeaders = ["type", "transactiontype", "debitorcredit", "direction"];
 
     public static async Task<IReadOnlyList<ParsedStatementTransaction>> ParseAsync(
         string filePath,
@@ -40,6 +41,7 @@ public static class CsvStatementParser
         var amountIndex = FindHeader(headers, AmountHeaders);
         var debitIndex = FindHeader(headers, DebitHeaders);
         var creditIndex = FindHeader(headers, CreditHeaders);
+        var directionIndex = FindHeader(headers, DirectionHeaders);
 
         if (dateIndex < 0 || (amountIndex < 0 && debitIndex < 0 && creditIndex < 0))
         {
@@ -66,6 +68,8 @@ public static class CsvStatementParser
                     amountIndex,
                     debitIndex,
                     creditIndex,
+                    directionIndex,
+                    description,
                     amountConvention,
                     out var amount,
                     out var type))
@@ -88,6 +92,8 @@ public static class CsvStatementParser
         int amountIndex,
         int debitIndex,
         int creditIndex,
+        int directionIndex,
+        string description,
         StatementAmountConvention amountConvention,
         out decimal amount,
         out TransactionType type)
@@ -98,14 +104,14 @@ public static class CsvStatementParser
         if (TryGet(cells, debitIndex, out var debitText) && TryParseAmount(debitText, out var debit) && debit != 0)
         {
             amount = Math.Abs(debit);
-            type = TransactionType.Expense;
+            type = StatementTransactionClassifier.Classify(description, TransactionType.Expense);
             return true;
         }
 
         if (TryGet(cells, creditIndex, out var creditText) && TryParseAmount(creditText, out var credit) && credit != 0)
         {
             amount = Math.Abs(credit);
-            type = TransactionType.Income;
+            type = StatementTransactionClassifier.Classify(description, TransactionType.Income);
             return true;
         }
 
@@ -113,10 +119,14 @@ public static class CsvStatementParser
             return false;
 
         amount = Math.Abs(signedAmount);
-        var positiveAmountsAreExpenses = amountConvention == StatementAmountConvention.PositiveAmountsAreExpenses;
-        type = positiveAmountsAreExpenses == (signedAmount > 0)
-            ? TransactionType.Expense
-            : TransactionType.Income;
+        var direction = TryGet(cells, directionIndex, out var directionText)
+            ? directionText
+            : string.Empty;
+        type = StatementTransactionClassifier.ClassifySignedAmount(
+            description,
+            signedAmount,
+            amountConvention,
+            direction);
         return true;
     }
 
