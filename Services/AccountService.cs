@@ -7,6 +7,7 @@ public sealed class AccountService : IAccountService
     private readonly IBackupService _backupService;
     private readonly ISupabaseService _supabase;
     private readonly ICloudStatementSyncService _statementSyncService;
+    private readonly IUserDataContext _userContext;
 
     public AccountSession Session => _supabase.Session;
     public string BackendName => "Supabase";
@@ -14,22 +15,38 @@ public sealed class AccountService : IAccountService
     public AccountService(
         IBackupService backupService,
         ISupabaseService supabase,
-        ICloudStatementSyncService statementSyncService)
+        ICloudStatementSyncService statementSyncService,
+        IUserDataContext userContext)
     {
         _backupService = backupService;
         _supabase = supabase;
         _statementSyncService = statementSyncService;
+        _userContext = userContext;
     }
 
-    public Task InitializeAsync() => _supabase.InitializeAsync();
+    public async Task InitializeAsync()
+    {
+        await _supabase.InitializeAsync();
+        SetUserContextFromSession();
+    }
 
-    public Task RegisterAsync(string email, string password) =>
-        _supabase.SignUpAsync(email, password);
+    public async Task RegisterAsync(string email, string password)
+    {
+        await _supabase.SignUpAsync(email, password);
+        SetUserContextFromSession();
+    }
 
-    public Task SignInAsync(string email, string password) =>
-        _supabase.SignInAsync(email, password);
+    public async Task SignInAsync(string email, string password)
+    {
+        await _supabase.SignInAsync(email, password);
+        SetUserContextFromSession();
+    }
 
-    public Task SignOutAsync() => _supabase.SignOutAsync();
+    public async Task SignOutAsync()
+    {
+        await _supabase.SignOutAsync();
+        _userContext.Clear();
+    }
 
     public async Task PushToCloudAsync()
     {
@@ -43,5 +60,13 @@ public sealed class AccountService : IAccountService
         var backup = await _supabase.GetBackupAsync()
             ?? throw new InvalidOperationException("No cloud backup exists for this account yet.");
         return await _backupService.ImportBackupAsync(backup, clearExistingData: true);
+    }
+
+    private void SetUserContextFromSession()
+    {
+        if (_supabase.Session.IsSignedIn)
+            _userContext.SetCurrentUser(_supabase.Session.UserId);
+        else
+            _userContext.Clear();
     }
 }

@@ -26,12 +26,23 @@ public static class MauiProgram
         builder.Services.AddSingleton(SupabaseOptions.FromAssembly());
         builder.Services.AddSingleton(new LocalServerOptions());
         builder.Services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(10) });
+        builder.Services.AddSingleton<IUserDataContext, UserDataContext>();
         builder.Services.AddSingleton<ISupabaseService, SupabaseService>();
-        builder.Services.AddSingleton<IExpenseService>(_ => new SQLiteExpenseService(dbPath));
-        builder.Services.AddSingleton<IGoalService>(_ => new SQLiteGoalService(dbPath));
-        builder.Services.AddSingleton<IScheduleService>(_ => new SQLiteScheduleService(dbPath));
-        builder.Services.AddSingleton<IFinancialAccountService>(_ => new SQLiteFinancialAccountService(dbPath));
-        builder.Services.AddSingleton<ISplitService>(_ => new SQLiteSplitService(dbPath));
+        builder.Services.AddSingleton<IExpenseService>(provider => new SQLiteExpenseService(
+            dbPath,
+            provider.GetRequiredService<IUserDataContext>()));
+        builder.Services.AddSingleton<IGoalService>(provider => new SQLiteGoalService(
+            dbPath,
+            provider.GetRequiredService<IUserDataContext>()));
+        builder.Services.AddSingleton<IScheduleService>(provider => new SQLiteScheduleService(
+            dbPath,
+            provider.GetRequiredService<IUserDataContext>()));
+        builder.Services.AddSingleton<IFinancialAccountService>(provider => new SQLiteFinancialAccountService(
+            dbPath,
+            provider.GetRequiredService<IUserDataContext>()));
+        builder.Services.AddSingleton<ISplitService>(provider => new SQLiteSplitService(
+            dbPath,
+            provider.GetRequiredService<IUserDataContext>()));
         builder.Services.AddSingleton<IPaymentRequestService, PaymentRequestService>();
         builder.Services.AddSingleton<IPaymentGatewayService, LocalPaymentGatewayService>();
         builder.Services.AddSingleton<ICloudStatementSyncService, CloudStatementSyncService>();
@@ -39,6 +50,7 @@ public static class MauiProgram
             provider.GetRequiredService<IFinancialAccountService>(),
             provider.GetRequiredService<IExpenseService>(),
             provider.GetRequiredService<ICloudStatementSyncService>(),
+            provider.GetRequiredService<IUserDataContext>(),
             Path.Combine(FileSystem.AppDataDirectory, "Statements")));
         builder.Services.AddSingleton<IBackupService, DataBackupService>();
         builder.Services.AddSingleton<IAccountService, LocalServerAccountService>();

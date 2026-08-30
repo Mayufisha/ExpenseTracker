@@ -12,6 +12,7 @@ public sealed class LocalServerAccountService : IAccountService
     private const string UserIdKey = "LocalServer.UserId";
     private const string ExpiresAtKey = "LocalServer.ExpiresAtUtc";
     private readonly IBackupService _backupService;
+    private readonly IUserDataContext _userContext;
     private readonly HttpClient _httpClient;
     private readonly string _baseUrl;
 
@@ -21,9 +22,11 @@ public sealed class LocalServerAccountService : IAccountService
     public LocalServerAccountService(
         LocalServerOptions options,
         IBackupService backupService,
+        IUserDataContext userContext,
         HttpClient httpClient)
     {
         _backupService = backupService;
+        _userContext = userContext;
         _httpClient = httpClient;
         _baseUrl = options.BaseUrl.TrimEnd('/');
         Session.ProjectUrl = _baseUrl;
@@ -83,7 +86,7 @@ public sealed class LocalServerAccountService : IAccountService
                 using var response = await SendAsync(request);
             }
         }
-        catch (HttpRequestException)
+        catch (InvalidOperationException)
         {
         }
         finally
@@ -145,6 +148,7 @@ public sealed class LocalServerAccountService : IAccountService
         Session.UserId = result.UserId;
         Session.Email = result.Email;
         Session.ExpiresAtUtc = result.ExpiresAtUtc;
+        _userContext.SetCurrentUser(Session.UserId);
         Preferences.Set(EmailKey, Session.Email);
         await SecureStorage.Default.SetAsync(AccessTokenKey, Session.AccessToken);
         await SecureStorage.Default.SetAsync(UserIdKey, Session.UserId);
@@ -162,6 +166,7 @@ public sealed class LocalServerAccountService : IAccountService
 
     private void ClearRuntimeSession()
     {
+        _userContext.Clear();
         Session.AccessToken = string.Empty;
         Session.UserId = string.Empty;
         Session.ExpiresAtUtc = default;

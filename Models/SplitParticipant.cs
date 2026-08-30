@@ -7,6 +7,8 @@ public class SplitParticipant
     [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
 
+    public string OwnerUserId { get; set; } = string.Empty;
+
     public string SyncId { get; set; } = Guid.NewGuid().ToString("N");
     public string ExpenseSplitSyncId { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;

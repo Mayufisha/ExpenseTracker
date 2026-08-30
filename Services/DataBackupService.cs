@@ -107,6 +107,7 @@ public class DataBackupService : IBackupService
                 InstitutionName = a.InstitutionName,
                 AccountName = a.AccountName,
                 AccountType = a.AccountType,
+                AmountConvention = a.AmountConvention,
                 LastFour = a.LastFour
             }).ToList(),
             Statements = statements
@@ -154,6 +155,7 @@ public class DataBackupService : IBackupService
                 InstitutionName = account.InstitutionName,
                 AccountName = account.AccountName,
                 AccountType = account.AccountType,
+                AmountConvention = account.AmountConvention,
                 LastFour = account.LastFour
             });
         }

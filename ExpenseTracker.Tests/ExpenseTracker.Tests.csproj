@@ -49,6 +49,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\\Models\\StatementAmountConvention.cs" Link="Source\\Models\\StatementAmountConvention.cs" />
+    <Compile Include="..\\Services\\IGoalService.cs" Link="Source\\Services\\IGoalService.cs" />
+    <Compile Include="..\\Services\\IUserDataContext.cs" Link="Source\\Services\\IUserDataContext.cs" />
+    <Compile Include="..\\Services\\SQLiteExpenseService.cs" Link="Source\\Services\\SQLiteExpenseService.cs" />
+    <Compile Include="..\\Services\\SQLiteFinancialAccountService.cs" Link="Source\\Services\\SQLiteFinancialAccountService.cs" />
+    <Compile Include="..\\Services\\SQLiteGoalService.cs" Link="Source\\Services\\SQLiteGoalService.cs" />
+    <Compile Include="..\\Services\\SQLiteScheduleService.cs" Link="Source\\Services\\SQLiteScheduleService.cs" />
+    <Compile Include="..\\Services\\SQLiteSchema.cs" Link="Source\\Services\\SQLiteSchema.cs" />
+    <Compile Include="..\\Services\\UserDataContext.cs" Link="Source\\Services\\UserDataContext.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Using Include="Xunit" />
   </ItemGroup>
 

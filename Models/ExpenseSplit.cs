@@ -7,6 +7,8 @@ public class ExpenseSplit
     [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
 
+    public string OwnerUserId { get; set; } = string.Empty;
+
     public string SyncId { get; set; } = Guid.NewGuid().ToString("N");
     public string TransactionSyncId { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;

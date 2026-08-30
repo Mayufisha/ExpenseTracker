@@ -7,6 +7,8 @@ public class StatementAttachment
     [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
 
+    public string OwnerUserId { get; set; } = string.Empty;
+
     public int FinancialAccountId { get; set; }
     public string OriginalFileName { get; set; } = string.Empty;
     public string StoredFilePath { get; set; } = string.Empty;

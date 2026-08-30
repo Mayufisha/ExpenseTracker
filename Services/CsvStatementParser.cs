@@ -16,6 +16,16 @@ public static class CsvStatementParser
         string filePath,
         string accountType)
     {
+        var convention = accountType.Contains("credit", StringComparison.OrdinalIgnoreCase)
+            ? StatementAmountConvention.PositiveAmountsAreExpenses
+            : StatementAmountConvention.NegativeAmountsAreExpenses;
+        return await ParseAsync(filePath, convention);
+    }
+
+    public static async Task<IReadOnlyList<ParsedStatementTransaction>> ParseAsync(
+        string filePath,
+        StatementAmountConvention amountConvention)
+    {
         var lines = await File.ReadAllLinesAsync(filePath);
         if (lines.Length < 2)
             throw new InvalidDataException("The CSV statement does not contain transaction rows.");
@@ -37,7 +47,6 @@ public static class CsvStatementParser
                 "CSV must include a date column and either amount, debit, or credit columns.");
         }
 
-        var isCreditCard = accountType.Contains("credit", StringComparison.OrdinalIgnoreCase);
         var result = new List<ParsedStatementTransaction>();
 
         foreach (var line in lines.Skip(1))
@@ -52,7 +61,14 @@ public static class CsvStatementParser
                 ? descriptionText.Trim()
                 : "Statement transaction";
 
-            if (!TryResolveAmount(cells, amountIndex, debitIndex, creditIndex, isCreditCard, out var amount, out var type))
+            if (!TryResolveAmount(
+                    cells,
+                    amountIndex,
+                    debitIndex,
+                    creditIndex,
+                    amountConvention,
+                    out var amount,
+                    out var type))
                 continue;
 
             result.Add(new ParsedStatementTransaction
@@ -72,7 +88,7 @@ public static class CsvStatementParser
         int amountIndex,
         int debitIndex,
         int creditIndex,
-        bool isCreditCard,
+        StatementAmountConvention amountConvention,
         out decimal amount,
         out TransactionType type)
     {
@@ -97,9 +113,10 @@ public static class CsvStatementParser
             return false;
 
         amount = Math.Abs(signedAmount);
-        type = isCreditCard
-            ? signedAmount >= 0 ? TransactionType.Expense : TransactionType.Income
-            : signedAmount < 0 ? TransactionType.Expense : TransactionType.Income;
+        var positiveAmountsAreExpenses = amountConvention == StatementAmountConvention.PositiveAmountsAreExpenses;
+        type = positiveAmountsAreExpenses == (signedAmount > 0)
+            ? TransactionType.Expense
+            : TransactionType.Income;
         return true;
     }
 

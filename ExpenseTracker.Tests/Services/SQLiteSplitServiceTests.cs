@@ -103,6 +103,8 @@ public class SQLiteSplitServiceTests
         var path = System.IO.Path.Combine(
             System.IO.Path.GetTempPath(),
             $"money-manager-splits-{Guid.NewGuid():N}.db3");
-        return (new SQLiteSplitService(path), path);
+        var userContext = new UserDataContext();
+        userContext.SetCurrentUser("split-test-user");
+        return (new SQLiteSplitService(path, userContext), path);
     }
 }

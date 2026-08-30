@@ -7,6 +7,8 @@ public class Goal
     [PrimaryKey, AutoIncrement]
     public int Id { get; set; }
 
+    public string OwnerUserId { get; set; } = string.Empty;
+
     public string Name { get; set; } = string.Empty;       
     public decimal TargetAmount { get; set; }               
     public decimal CurrentAmount { get; set; }              

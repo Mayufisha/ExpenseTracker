@@ -8,17 +8,20 @@ public class StatementImportService : IStatementImportService
     private readonly IFinancialAccountService _accountService;
     private readonly IExpenseService _expenseService;
     private readonly ICloudStatementSyncService _cloudSyncService;
+    private readonly IUserDataContext _userContext;
     private readonly string _statementDirectory;
 
     public StatementImportService(
         IFinancialAccountService accountService,
         IExpenseService expenseService,
         ICloudStatementSyncService cloudSyncService,
+        IUserDataContext userContext,
         string statementDirectory)
     {
         _accountService = accountService;
         _expenseService = expenseService;
         _cloudSyncService = cloudSyncService;
+        _userContext = userContext;
         _statementDirectory = statementDirectory;
     }
 
@@ -34,7 +37,11 @@ public class StatementImportService : IStatementImportService
         if (extension is not ".csv" and not ".pdf")
             throw new InvalidDataException("Only CSV and PDF statements are supported.");
 
-        var accountDirectory = Path.Combine(_statementDirectory, account.Id.ToString());
+        var ownerUserId = _userContext.RequireCurrentUserId();
+        if (!account.OwnerUserId.Equals(ownerUserId, StringComparison.Ordinal))
+            throw new InvalidOperationException("This financial account does not belong to the signed-in user.");
+
+        var accountDirectory = Path.Combine(_statementDirectory, ownerUserId, account.Id.ToString());
         Directory.CreateDirectory(accountDirectory);
         var storedPath = Path.Combine(accountDirectory, $"{Guid.NewGuid():N}{extension}");
 
@@ -98,7 +105,9 @@ public class StatementImportService : IStatementImportService
         string storedPath,
         string originalFileName)
     {
-        var parsedTransactions = await CsvStatementParser.ParseAsync(storedPath, account.AccountType);
+        var parsedTransactions = await CsvStatementParser.ParseAsync(
+            storedPath,
+            account.ParsedAmountConvention);
         var categories = await _expenseService.GetCategoriesAsync();
         var fallbackCategory = categories.FirstOrDefault(c =>
             c.Name.Equals("Other", StringComparison.OrdinalIgnoreCase)) ?? categories.First();

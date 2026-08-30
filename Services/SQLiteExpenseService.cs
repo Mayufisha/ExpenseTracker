@@ -6,11 +6,13 @@ namespace ExpenseTracker.Services;
 public class SQLiteExpenseService : IExpenseService
 {
     private readonly SQLiteAsyncConnection _db;
+    private readonly IUserDataContext _userContext;
     private bool _initialized;
 
-    public SQLiteExpenseService(string databasePath)
+    public SQLiteExpenseService(string databasePath, IUserDataContext userContext)
     {
         _db = new SQLiteAsyncConnection(databasePath);
+        _userContext = userContext;
     }
 
     private async Task InitAsync()
@@ -19,6 +21,7 @@ public class SQLiteExpenseService : IExpenseService
 
         await _db.CreateTableAsync<Category>();
         await _db.CreateTableAsync<Transaction>();
+        await SQLiteSchema.EnsureOwnerColumnAsync(_db, "Transaction");
         await EnsureTransactionSchemaAsync();
 
         var count = await _db.Table<Category>().CountAsync();
@@ -83,7 +86,11 @@ public class SQLiteExpenseService : IExpenseService
     {
         await InitAsync();
         var categories = await _db.Table<Category>().ToListAsync();
-        var txs = await _db.Table<Transaction>().OrderByDescending(t => t.Date).ToListAsync();
+        var ownerUserId = _userContext.RequireCurrentUserId();
+        var txs = await _db.Table<Transaction>()
+            .Where(t => t.OwnerUserId == ownerUserId)
+            .OrderByDescending(t => t.Date)
+            .ToListAsync();
 
         foreach (var t in txs)
         {
@@ -100,6 +107,13 @@ public class SQLiteExpenseService : IExpenseService
     public async Task AddOrUpdateTransactionAsync(Transaction transaction)
     {
         await InitAsync();
+        var ownerUserId = _userContext.RequireCurrentUserId();
+        if (transaction.Id != 0 && await _db.Table<Transaction>()
+                .Where(item => item.Id == transaction.Id && item.OwnerUserId == ownerUserId)
+                .CountAsync() == 0)
+            throw new InvalidOperationException("This transaction does not belong to the signed-in user.");
+
+        transaction.OwnerUserId = ownerUserId;
 
         if (string.IsNullOrWhiteSpace(transaction.Type))
         {
@@ -122,13 +136,22 @@ public class SQLiteExpenseService : IExpenseService
     public async Task DeleteTransactionAsync(int id)
     {
         await InitAsync();
-        await _db.DeleteAsync<Transaction>(id);
+        var ownerUserId = _userContext.RequireCurrentUserId();
+        await _db.ExecuteAsync(
+            "DELETE FROM \"Transaction\" WHERE Id = ? AND OwnerUserId = ?",
+            id,
+            ownerUserId);
     }
 
     public async Task ClearAllTransactionsAsync()
     {
         await InitAsync();
-        await _db.DeleteAllAsync<Transaction>();
+        var ownerUserId = _userContext.RequireCurrentUserId();
+        await _db.ExecuteAsync(
+            "DELETE FROM \"Transaction\" WHERE OwnerUserId = ?",
+            ownerUserId);
     }
+
+    public Task CloseAsync() => _db.CloseAsync();
 
 }
