@@ -41,7 +41,7 @@ public static partial class PdfStatementParser
         string extractedText,
         StatementAmountConvention amountConvention)
     {
-        var transactions = new List<ParsedStatementTransaction>();
+        var parsedRows = new List<(DateTime Date, string Description, decimal SignedAmount)>();
         var lines = extractedText.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
 
         foreach (var rawLine in lines)
@@ -65,19 +65,26 @@ public static partial class PdfStatementParser
             if (string.IsNullOrWhiteSpace(description))
                 description = "PDF statement transaction";
 
-            transactions.Add(new ParsedStatementTransaction
-            {
-                Date = date,
-                Description = description,
-                Amount = Math.Abs(signedAmount),
-                Type = StatementTransactionClassifier.ClassifySignedAmount(
-                    description,
-                    signedAmount,
-                    amountConvention)
-            });
+            parsedRows.Add((date, description, signedAmount));
         }
 
-        return transactions;
+        var detectedConvention = StatementTransactionClassifier.DetectAmountConvention(
+            parsedRows.Select(row => (
+                row.SignedAmount,
+                StatementTransactionClassifier.ClassifyExplicit(row.Description))),
+            amountConvention);
+
+        return parsedRows.Select(row => new ParsedStatementTransaction
+            {
+                Date = row.Date,
+                Description = row.Description,
+                Amount = Math.Abs(row.SignedAmount),
+                Type = StatementTransactionClassifier.ClassifySignedAmount(
+                    row.Description,
+                    row.SignedAmount,
+                    detectedConvention)
+            })
+            .ToList();
     }
 
     private static bool TryParseDate(string value, out DateTime date)

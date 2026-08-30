@@ -29,6 +29,7 @@
     <Compile Include="..\\Models\\ParsedStatementTransaction.cs" Link="Source\\Models\\ParsedStatementTransaction.cs" />
     <Compile Include="..\\Models\\ScheduledTransaction.cs" Link="Source\\Models\\ScheduledTransaction.cs" />
     <Compile Include="..\\Models\\StatementAttachment.cs" Link="Source\\Models\\StatementAttachment.cs" />
+    <Compile Include="..\\Models\\StatementImportResult.cs" Link="Source\\Models\\StatementImportResult.cs" />
     <Compile Include="..\\Models\\SplitParticipant.cs" Link="Source\\Models\\SplitParticipant.cs" />
     <Compile Include="..\\Models\\TimeRange.cs" Link="Source\\Models\\TimeRange.cs" />
     <Compile Include="..\\Models\\Transaction.cs" Link="Source\\Models\\Transaction.cs" />
@@ -37,6 +38,7 @@
     <Compile Include="..\\Services\\ICloudStatementSyncService.cs" Link="Source\\Services\\ICloudStatementSyncService.cs" />
     <Compile Include="..\\Services\\IExpenseService.cs" Link="Source\\Services\\IExpenseService.cs" />
     <Compile Include="..\\Services\\IFinancialAccountService.cs" Link="Source\\Services\\IFinancialAccountService.cs" />
+    <Compile Include="..\\Services\\IStatementImportService.cs" Link="Source\\Services\\IStatementImportService.cs" />
     <Compile Include="..\\Services\\IScheduleService.cs" Link="Source\\Services\\IScheduleService.cs" />
     <Compile Include="..\\Services\\ISplitService.cs" Link="Source\\Services\\ISplitService.cs" />
     <Compile Include="..\\Services\\ISupabaseService.cs" Link="Source\\Services\\ISupabaseService.cs" />
@@ -60,6 +62,7 @@
     <Compile Include="..\\Services\\SQLiteSchema.cs" Link="Source\\Services\\SQLiteSchema.cs" />
     <Compile Include="..\\Services\\PdfStatementParser.cs" Link="Source\\Services\\PdfStatementParser.cs" />
     <Compile Include="..\\Services\\StatementTransactionClassifier.cs" Link="Source\\Services\\StatementTransactionClassifier.cs" />
+    <Compile Include="..\\Services\\StatementImportService.cs" Link="Source\\Services\\StatementImportService.cs" />
     <Compile Include="..\\Services\\UserDataContext.cs" Link="Source\\Services\\UserDataContext.cs" />
   </ItemGroup>
 

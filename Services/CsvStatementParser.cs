@@ -49,13 +49,20 @@ public static class CsvStatementParser
                 "CSV must include a date column and either amount, debit, or credit columns.");
         }
 
+        var rows = lines.Skip(1)
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .Select(line => (IReadOnlyList<string>)ParseLine(line, delimiter))
+            .ToList();
+        var detectedConvention = DetectAmountConvention(
+            rows,
+            amountIndex,
+            descriptionIndex,
+            directionIndex,
+            amountConvention);
         var result = new List<ParsedStatementTransaction>();
 
-        foreach (var line in lines.Skip(1))
+        foreach (var cells in rows)
         {
-            if (string.IsNullOrWhiteSpace(line)) continue;
-
-            var cells = ParseLine(line, delimiter);
             if (!TryGet(cells, dateIndex, out var dateText) || !TryParseDate(dateText, out var date))
                 continue;
 
@@ -70,7 +77,7 @@ public static class CsvStatementParser
                     creditIndex,
                     directionIndex,
                     description,
-                    amountConvention,
+                    detectedConvention,
                     out var amount,
                     out var type))
                 continue;
@@ -85,6 +92,34 @@ public static class CsvStatementParser
         }
 
         return result;
+    }
+
+    private static StatementAmountConvention DetectAmountConvention(
+        IReadOnlyList<IReadOnlyList<string>> rows,
+        int amountIndex,
+        int descriptionIndex,
+        int directionIndex,
+        StatementAmountConvention fallback)
+    {
+        if (amountIndex < 0) return fallback;
+
+        var evidence = rows.Select(cells =>
+        {
+            var signedAmount = 0m;
+            var hasAmount = TryGet(cells, amountIndex, out var amountText)
+                && TryParseAmount(amountText, out signedAmount);
+            var description = TryGet(cells, descriptionIndex, out var descriptionText)
+                ? descriptionText
+                : string.Empty;
+            var direction = TryGet(cells, directionIndex, out var directionText)
+                ? directionText
+                : string.Empty;
+            return (
+                SignedAmount: hasAmount ? signedAmount : 0,
+                ExplicitType: StatementTransactionClassifier.ClassifyExplicit(description, direction));
+        });
+
+        return StatementTransactionClassifier.DetectAmountConvention(evidence, fallback);
     }
 
     private static bool TryResolveAmount(

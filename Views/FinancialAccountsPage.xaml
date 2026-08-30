@@ -63,7 +63,7 @@
                                MaxLength="4" />
                     </VerticalStackLayout>
                     <VerticalStackLayout WidthRequest="250" Margin="0,0,12,8" Spacing="4">
-                        <Label Text="For a single Amount column" Style="{StaticResource MutedLabel}" />
+                        <Label Text="Fallback for an ambiguous Amount column" Style="{StaticResource MutedLabel}" />
                         <Picker x:Name="AmountConventionPicker">
                             <Picker.Items>
                                 <x:String>Negative values are expenses</x:String>
@@ -73,7 +73,7 @@
                     </VerticalStackLayout>
                 </FlexLayout>
 
-                <Label Text="CSV files with separate Debit and Credit columns are detected automatically. The amount rule only applies when the file has one Amount column."
+                <Label Text="CSV and PDF imports infer the sign rule from transaction descriptions and direction columns. This fallback is used only when the statement has insufficient evidence."
                        Style="{StaticResource MutedLabel}" />
                 <Label x:Name="EditorErrorLabel"
                        TextColor="{StaticResource Danger}"

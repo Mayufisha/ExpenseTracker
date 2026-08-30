@@ -8,4 +8,6 @@ public interface IStatementImportService
         FinancialAccount account,
         Stream sourceStream,
         string originalFileName);
+
+    Task<int> ReclassifyAttachedTransactionsAsync();
 }

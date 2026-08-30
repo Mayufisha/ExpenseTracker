@@ -7,6 +7,7 @@ namespace ExpenseTracker.ViewModels;
 public class TransactionsViewModel : BaseViewModel
 {
     private readonly IExpenseService _expenseService;
+    private readonly IStatementImportService? _statementImportService;
     private readonly List<Transaction> _allTransactions = new();
 
     public ObservableCollection<Transaction> Transactions { get; } = new();
@@ -39,9 +40,12 @@ public class TransactionsViewModel : BaseViewModel
         }
     }
 
-    public TransactionsViewModel(IExpenseService expenseService)
+    public TransactionsViewModel(
+        IExpenseService expenseService,
+        IStatementImportService? statementImportService = null)
     {
         _expenseService = expenseService;
+        _statementImportService = statementImportService;
     }
 
     public async Task LoadAsync()
@@ -53,6 +57,9 @@ public class TransactionsViewModel : BaseViewModel
         _allTransactions.Clear();
         MonthFilters.Clear();
         InstitutionFilters.Clear();
+
+        if (_statementImportService != null)
+            await _statementImportService.ReclassifyAttachedTransactionsAsync();
 
         var items = await _expenseService.GetTransactionsAsync();
         _allTransactions.AddRange(items);

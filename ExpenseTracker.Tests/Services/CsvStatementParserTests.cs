@@ -201,6 +201,35 @@ public class CsvStatementParserTests
         }
     }
 
+    [Fact]
+    public async Task ParseAsync_DetectsFileConvention_WhenAccountSettingIsWrong()
+    {
+        var path = await CreateCsvAsync(
+            "Description,Type,Card Holder Name,Date,Time,Amount\n" +
+            "eTransfer to Recipient,TRANSFER,USER,08/28/2026,01:36 PM,-120.00\n" +
+            "eTransfer Autodeposit,TRANSFER,USER,08/23/2026,11:45 PM,408.00\n" +
+            "Employer,DEPOSIT,USER,08/20/2026,09:45 PM,1229.13\n" +
+            "Credit Card,TRANSFER,USER,07/28/2026,03:57 PM,-125.75\n" +
+            "Savings,TRANSFER,USER,07/27/2026,03:57 PM,300.00\n");
+
+        try
+        {
+            var transactions = await CsvStatementParser.ParseAsync(
+                path,
+                StatementAmountConvention.PositiveAmountsAreExpenses);
+
+            Assert.Equal(TransactionType.Expense, transactions[0].Type);
+            Assert.Equal(TransactionType.Income, transactions[1].Type);
+            Assert.Equal(TransactionType.Income, transactions[2].Type);
+            Assert.Equal(TransactionType.Expense, transactions[3].Type);
+            Assert.Equal(TransactionType.Income, transactions[4].Type);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     private static async Task<string> CreateCsvAsync(string content)
     {
         var path = Path.Combine(Path.GetTempPath(), $"statement-{Guid.NewGuid():N}.csv");

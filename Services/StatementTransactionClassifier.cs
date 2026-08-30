@@ -54,6 +54,11 @@ public static class StatementTransactionClassifier
 
     public static TransactionType Classify(string description, TransactionType fallback)
     {
+        return ClassifyExplicit(description) ?? fallback;
+    }
+
+    public static TransactionType? ClassifyExplicit(string description, string direction = "")
+    {
         var normalized = Normalize(description);
         var isTransfer = TransferTerms.Any(normalized.Contains);
 
@@ -66,7 +71,7 @@ public static class StatementTransactionClassifier
         if (ExpenseTerms.Any(normalized.Contains))
             return TransactionType.Expense;
 
-        return fallback;
+        return ClassifyDirection(direction);
     }
 
     public static TransactionType ClassifySignedAmount(
@@ -79,10 +84,35 @@ public static class StatementTransactionClassifier
         var fallback = positiveAmountsAreExpenses == (signedAmount > 0)
             ? TransactionType.Expense
             : TransactionType.Income;
-        return Classify(description, ClassifyDirection(direction, fallback));
+        return ClassifyExplicit(description, direction) ?? fallback;
     }
 
-    private static TransactionType ClassifyDirection(string direction, TransactionType fallback)
+    public static StatementAmountConvention DetectAmountConvention(
+        IEnumerable<(decimal SignedAmount, TransactionType? ExplicitType)> evidence,
+        StatementAmountConvention fallback)
+    {
+        var negativeExpenseVotes = 0;
+        var positiveExpenseVotes = 0;
+
+        foreach (var (signedAmount, explicitType) in evidence)
+        {
+            if (signedAmount == 0 || explicitType == null) continue;
+
+            var positiveMeansExpense = (signedAmount > 0) == (explicitType == TransactionType.Expense);
+            if (positiveMeansExpense)
+                positiveExpenseVotes++;
+            else
+                negativeExpenseVotes++;
+        }
+
+        if (negativeExpenseVotes >= 2 && negativeExpenseVotes > positiveExpenseVotes * 2)
+            return StatementAmountConvention.NegativeAmountsAreExpenses;
+        if (positiveExpenseVotes >= 2 && positiveExpenseVotes > negativeExpenseVotes * 2)
+            return StatementAmountConvention.PositiveAmountsAreExpenses;
+        return fallback;
+    }
+
+    private static TransactionType? ClassifyDirection(string direction)
     {
         var normalized = Normalize(direction);
         if (new[] { " debit ", " withdrawal ", " charge ", " purchase ", " sent ", " outgoing " }
@@ -91,7 +121,7 @@ public static class StatementTransactionClassifier
         if (new[] { " credit ", " deposit ", " received ", " incoming " }
             .Any(normalized.Contains))
             return TransactionType.Income;
-        return fallback;
+        return null;
     }
 
     private static string Normalize(string value)

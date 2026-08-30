@@ -7,6 +7,7 @@ namespace ExpenseTracker.ViewModels;
 public class DashboardViewModel : BaseViewModel
 {
     private readonly IExpenseService _expenseService;
+    private readonly IStatementImportService? _statementImportService;
 
     public ObservableCollection<Transaction> Transactions { get; } = new();
     public IReadOnlyList<MonthlyNetPoint> MonthlyNetPoints { get; private set; } = Array.Empty<MonthlyNetPoint>();
@@ -53,9 +54,12 @@ public class DashboardViewModel : BaseViewModel
         set { netWorth = value; OnPropertyChanged(); }
     }
 
-    public DashboardViewModel(IExpenseService expenseService)
+    public DashboardViewModel(
+        IExpenseService expenseService,
+        IStatementImportService? statementImportService = null)
     {
         _expenseService = expenseService;
+        _statementImportService = statementImportService;
     }
 
     public async Task LoadAsync()
@@ -64,6 +68,9 @@ public class DashboardViewModel : BaseViewModel
         IsBusy = true;
 
         Transactions.Clear();
+        if (_statementImportService != null)
+            await _statementImportService.ReclassifyAttachedTransactionsAsync();
+
         var items = await _expenseService.GetTransactionsAsync();
 
         foreach (var t in items)

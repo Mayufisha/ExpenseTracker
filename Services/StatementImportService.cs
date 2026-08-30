@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Cryptography;
 using ExpenseTracker.Models;
 
@@ -10,6 +11,8 @@ public class StatementImportService : IStatementImportService
     private readonly ICloudStatementSyncService _cloudSyncService;
     private readonly IUserDataContext _userContext;
     private readonly string _statementDirectory;
+    private readonly SemaphoreSlim _reclassificationLock = new(1, 1);
+    private string _reclassifiedUserId = string.Empty;
 
     public StatementImportService(
         IFinancialAccountService accountService,
@@ -98,6 +101,86 @@ public class StatementImportService : IStatementImportService
         }
     }
 
+    public async Task<int> ReclassifyAttachedTransactionsAsync()
+    {
+        var ownerUserId = _userContext.RequireCurrentUserId();
+        await _reclassificationLock.WaitAsync();
+        try
+        {
+            if (_reclassifiedUserId.Equals(ownerUserId, StringComparison.Ordinal)) return 0;
+
+            var correctedCount = await ReclassifyCurrentUserAsync();
+            _reclassifiedUserId = ownerUserId;
+            return correctedCount;
+        }
+        finally
+        {
+            _reclassificationLock.Release();
+        }
+    }
+
+    private async Task<int> ReclassifyCurrentUserAsync()
+    {
+        var accounts = (await _accountService.GetAccountsAsync()).ToDictionary(account => account.Id);
+        var statements = await _accountService.GetAllStatementsAsync();
+        var transactions = await _expenseService.GetTransactionsAsync();
+        var matchedTransactionIds = new HashSet<int>();
+        var correctedCount = 0;
+
+        foreach (var statement in statements.Where(item => item.ImportedTransactionCount > 0))
+        {
+            if (!accounts.TryGetValue(statement.FinancialAccountId, out var account)
+                || !File.Exists(statement.StoredFilePath))
+                continue;
+
+            IReadOnlyList<ParsedStatementTransaction> parsedTransactions;
+            try
+            {
+                var extension = Path.GetExtension(statement.StoredFilePath).ToLowerInvariant();
+                parsedTransactions = extension == ".pdf"
+                    ? await PdfStatementParser.ParseAsync(statement.StoredFilePath, account.ParsedAmountConvention)
+                    : await CsvStatementParser.ParseAsync(statement.StoredFilePath, account.ParsedAmountConvention);
+            }
+            catch (Exception exception) when (exception is IOException
+                                              or UnauthorizedAccessException
+                                              or InvalidDataException)
+            {
+                continue;
+            }
+
+            var existingByKey = transactions
+                .Where(transaction => transaction.FinancialAccountId == account.Id
+                    && transaction.StatementFileName.Equals(
+                        statement.OriginalFileName,
+                        StringComparison.OrdinalIgnoreCase)
+                    && !matchedTransactionIds.Contains(transaction.Id))
+                .GroupBy(transaction => CreateTransactionKey(
+                    transaction.Date,
+                    transaction.Amount,
+                    transaction.Note))
+                .ToDictionary(
+                    group => group.Key,
+                    group => new Queue<Transaction>(group.OrderBy(transaction => transaction.Id)));
+
+            foreach (var parsed in parsedTransactions)
+            {
+                var key = CreateTransactionKey(parsed.Date, parsed.Amount, parsed.Description);
+                if (!existingByKey.TryGetValue(key, out var matches) || matches.Count == 0)
+                    continue;
+
+                var transaction = matches.Dequeue();
+                matchedTransactionIds.Add(transaction.Id);
+                if (transaction.ParsedType == parsed.Type) continue;
+
+                transaction.ParsedType = parsed.Type;
+                await _expenseService.AddOrUpdateTransactionAsync(transaction);
+                correctedCount++;
+            }
+        }
+
+        return correctedCount;
+    }
+
     private async Task<int> ImportTransactionsAsync(
         FinancialAccount account,
         string storedPath,
@@ -137,5 +220,17 @@ public class StatementImportService : IStatementImportService
         using var sha256 = SHA256.Create();
         var hash = await sha256.ComputeHashAsync(stream);
         return Convert.ToHexString(hash);
+    }
+
+    private static string CreateTransactionKey(DateTime date, decimal amount, string description)
+    {
+        var normalizedDescription = string.Join(
+            ' ',
+            description.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+        return string.Join(
+            '|',
+            date.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            amount.ToString("0.############################", CultureInfo.InvariantCulture),
+            normalizedDescription.ToUpperInvariant());
     }
 }
