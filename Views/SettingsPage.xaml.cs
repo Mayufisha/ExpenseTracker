@@ -178,11 +178,11 @@ public partial class SettingsPage : ContentPage
         try
         {
             await _accountService.PushToCloudAsync();
-            await DisplayAlert("Cloud Sync", "Your local data was uploaded successfully.", "OK");
+            await DisplayAlert("Account Backup", "Your local data was uploaded successfully.", "OK");
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Sync Error", ex.Message, "OK");
+            await DisplayAlert("Backup Error", ex.Message, "OK");
         }
     }
 
@@ -192,13 +192,13 @@ public partial class SettingsPage : ContentPage
         {
             var result = await _accountService.PullFromCloudAsync();
             await DisplayAlert(
-                "Cloud Sync",
+                "Account Backup",
                 $"Downloaded data.\nTransactions: {result.ImportedTransactions}\nSplits: {result.ImportedSplits}\nStatements: {result.ImportedStatements}\nGoals: {result.ImportedGoals}\nScheduled: {result.ImportedScheduledItems}",
                 "OK");
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Sync Error", ex.Message, "OK");
+            await DisplayAlert("Backup Error", ex.Message, "OK");
         }
     }
 
@@ -250,9 +250,7 @@ public partial class SettingsPage : ContentPage
     private void LoadAccountState()
     {
         var session = _accountService.Session;
-        ProjectStatusLabel.Text = string.IsNullOrWhiteSpace(session.ProjectUrl)
-            ? "Supabase is not configured"
-            : session.ProjectUrl;
+        ProjectStatusLabel.Text = _accountService.BackendName;
         AccountStatusLabel.Text = session.IsSignedIn
             ? $"Signed in as {session.Email}"
             : "Not signed in";

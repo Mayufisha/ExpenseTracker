@@ -10,8 +10,6 @@ public partial class AuthPage : ContentPage
     {
         InitializeComponent();
         _accountService = accountService;
-        ProjectUrlEntry.Text = _accountService.Session.ProjectUrl;
-        PublishableKeyEntry.Text = _accountService.Session.PublishableKey;
         EmailEntry.Text = _accountService.Session.Email;
     }
 
@@ -19,7 +17,6 @@ public partial class AuthPage : ContentPage
     {
         try
         {
-            ApplyConfiguration();
             await _accountService.RegisterAsync(EmailEntry.Text ?? string.Empty, PasswordEntry.Text ?? string.Empty);
             if (_accountService.Session.IsSignedIn)
             {
@@ -27,10 +24,7 @@ public partial class AuthPage : ContentPage
                 return;
             }
 
-            await DisplayAlert(
-                "Confirm Your Email",
-                "Your account was created. Confirm your email, then return here to log in.",
-                "OK");
+            await DisplayAlert("Account Error", "The account was created without an active session.", "OK");
         }
         catch (Exception ex)
         {
@@ -42,7 +36,6 @@ public partial class AuthPage : ContentPage
     {
         try
         {
-            ApplyConfiguration();
             await _accountService.SignInAsync(EmailEntry.Text ?? string.Empty, PasswordEntry.Text ?? string.Empty);
             NavigateToMain();
         }
@@ -50,13 +43,6 @@ public partial class AuthPage : ContentPage
         {
             await DisplayAlert("Login Error", ex.Message, "OK");
         }
-    }
-
-    private void ApplyConfiguration()
-    {
-        _accountService.SetConfiguration(
-            ProjectUrlEntry.Text ?? string.Empty,
-            PublishableKeyEntry.Text ?? string.Empty);
     }
 
     private void NavigateToMain()

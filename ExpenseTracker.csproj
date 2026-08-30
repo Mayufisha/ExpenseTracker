@@ -81,8 +81,11 @@
 
 	<ItemGroup>
 		<Compile Remove="ExpenseTracker.Tests\**\*.cs" />
+		<Compile Remove="ExpenseTracker.LocalServer\**\*.cs" />
 		<EmbeddedResource Remove="ExpenseTracker.Tests\**\*" />
+		<EmbeddedResource Remove="ExpenseTracker.LocalServer\**\*" />
 		<None Remove="ExpenseTracker.Tests\**\*" />
+		<None Remove="ExpenseTracker.LocalServer\**\*" />
 		<MauiXaml Remove="ExpenseTracker.Tests\**\*.xaml" />
 	</ItemGroup>
 

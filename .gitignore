@@ -370,3 +370,4 @@ FodyWeavers.xsd
 !.env.example
 supabase/.branches/
 supabase/.temp/
+.local-test-data/

@@ -10,18 +10,13 @@
             <Label Text="Money Manager"
                    FontSize="34"
                    FontAttributes="Bold" />
-            <Label Text="Sign in securely to access and sync your financial data."
+            <Label Text="Sign in to access your financial workspace."
                    Style="{StaticResource MutedLabel}" />
 
             <Border Padding="14">
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="Supabase connection" FontAttributes="Bold" />
-                    <Entry x:Name="ProjectUrlEntry"
-                           Placeholder="https://your-project.supabase.co"
-                           Keyboard="Url" />
-                    <Entry x:Name="PublishableKeyEntry"
-                           Placeholder="Publishable or anon key" />
-                    <Label Text="These values identify the app's Supabase project. They can be embedded at build time."
+                    <Label Text="Local testing" FontAttributes="Bold" />
+                    <Label Text="Accounts and saved sessions currently use the Money Manager server running on this computer."
                            FontSize="12"
                            Style="{StaticResource MutedLabel}" />
                 </VerticalStackLayout>
@@ -42,7 +37,7 @@
                         Clicked="OnLoginClicked" />
             </HorizontalStackLayout>
 
-            <Label Text="An account is required. If email confirmation is enabled, confirm your email before logging in."
+            <Label Text="An account is required. Create one here, then the app will restore your saved session automatically."
                    Style="{StaticResource MutedLabel}" />
         </VerticalStackLayout>
     </ScrollView>

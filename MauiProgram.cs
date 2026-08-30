@@ -24,7 +24,8 @@ public static class MauiProgram
         var dbPath = Path.Combine(FileSystem.AppDataDirectory, "expenses.db3");
 
         builder.Services.AddSingleton(SupabaseOptions.FromAssembly());
-        builder.Services.AddSingleton(new HttpClient());
+        builder.Services.AddSingleton(new LocalServerOptions());
+        builder.Services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(10) });
         builder.Services.AddSingleton<ISupabaseService, SupabaseService>();
         builder.Services.AddSingleton<IExpenseService>(_ => new SQLiteExpenseService(dbPath));
         builder.Services.AddSingleton<IGoalService>(_ => new SQLiteGoalService(dbPath));
@@ -32,7 +33,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IFinancialAccountService>(_ => new SQLiteFinancialAccountService(dbPath));
         builder.Services.AddSingleton<ISplitService>(_ => new SQLiteSplitService(dbPath));
         builder.Services.AddSingleton<IPaymentRequestService, PaymentRequestService>();
-        builder.Services.AddSingleton<IPaymentGatewayService, SupabasePaymentGatewayService>();
+        builder.Services.AddSingleton<IPaymentGatewayService, LocalPaymentGatewayService>();
         builder.Services.AddSingleton<ICloudStatementSyncService, CloudStatementSyncService>();
         builder.Services.AddSingleton<IStatementImportService>(provider => new StatementImportService(
             provider.GetRequiredService<IFinancialAccountService>(),
@@ -40,7 +41,7 @@ public static class MauiProgram
             provider.GetRequiredService<ICloudStatementSyncService>(),
             Path.Combine(FileSystem.AppDataDirectory, "Statements")));
         builder.Services.AddSingleton<IBackupService, DataBackupService>();
-        builder.Services.AddSingleton<IAccountService, AccountService>();
+        builder.Services.AddSingleton<IAccountService, LocalServerAccountService>();
 
         builder.Services.AddSingleton<DashboardViewModel>();
         builder.Services.AddSingleton<TransactionsViewModel>();

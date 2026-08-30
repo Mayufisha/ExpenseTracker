@@ -9,6 +9,7 @@ public sealed class AccountService : IAccountService
     private readonly ICloudStatementSyncService _statementSyncService;
 
     public AccountSession Session => _supabase.Session;
+    public string BackendName => "Supabase";
 
     public AccountService(
         IBackupService backupService,
@@ -21,9 +22,6 @@ public sealed class AccountService : IAccountService
     }
 
     public Task InitializeAsync() => _supabase.InitializeAsync();
-
-    public void SetConfiguration(string projectUrl, string publishableKey) =>
-        _supabase.SetConfiguration(projectUrl, publishableKey);
 
     public Task RegisterAsync(string email, string password) =>
         _supabase.SignUpAsync(email, password);

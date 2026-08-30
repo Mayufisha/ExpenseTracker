@@ -5,8 +5,8 @@ namespace ExpenseTracker.Services;
 public interface IAccountService
 {
     AccountSession Session { get; }
+    string BackendName { get; }
     Task InitializeAsync();
-    void SetConfiguration(string projectUrl, string publishableKey);
     Task RegisterAsync(string email, string password);
     Task SignInAsync(string email, string password);
     Task SignOutAsync();

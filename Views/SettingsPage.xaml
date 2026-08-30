@@ -35,9 +35,9 @@
 
             <VerticalStackLayout Spacing="8">
                 <Label Text="Payments" FontAttributes="Bold" />
-                <Label Text="The card flow is a Stripe test sandbox only. Live peer-to-peer charging needs an approved payment-network partner."
+                <Label Text="Manual settlement and Interac handoff work locally. Card checkout becomes available when the hosted payment backend is enabled."
                        Style="{StaticResource MutedLabel}" />
-                <Button Text="Set up card sandbox"
+                <Button Text="Set up card sandbox (hosted)"
                         Clicked="OnSetupCardPaymentsClicked" />
                 <Entry x:Name="ETransferRecipientEntry"
                        Placeholder="Your e-Transfer deposit email or mobile" />
@@ -51,18 +51,18 @@
             </VerticalStackLayout>
 
             <VerticalStackLayout Spacing="8">
-                <Label Text="Account &amp; Cloud Sync"
+                <Label Text="Account &amp; Backup"
                        FontAttributes="Bold" />
-                <Label Text="Use the same Supabase account on each device to sync data."
+                <Label Text="Local testing stores account backups on the development server."
                        Style="{StaticResource MutedLabel}" />
                 <Label x:Name="ProjectStatusLabel"
                        FontSize="12"
                        Style="{StaticResource MutedLabel}" />
                 <HorizontalStackLayout Spacing="8">
-                    <Button Text="Upload Sync"
+                    <Button Text="Upload Backup"
                             HorizontalOptions="FillAndExpand"
                             Clicked="OnUploadSyncClicked" />
-                    <Button Text="Download Sync"
+                    <Button Text="Download Backup"
                             HorizontalOptions="FillAndExpand"
                             Clicked="OnDownloadSyncClicked" />
                 </HorizontalStackLayout>
