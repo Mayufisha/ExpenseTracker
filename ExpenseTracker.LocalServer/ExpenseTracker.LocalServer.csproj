@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\Security\CredentialPolicy.cs" Link="Security\CredentialPolicy.cs" />
+    <Compile Include="..\Security\RequestFirewallPolicy.cs" Link="Security\RequestFirewallPolicy.cs" />
   </ItemGroup>
 </Project>

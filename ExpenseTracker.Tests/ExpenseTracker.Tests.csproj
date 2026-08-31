@@ -35,6 +35,7 @@
     <Compile Include="..\\Models\\Transaction.cs" Link="Source\\Models\\Transaction.cs" />
     <Compile Include="..\\Models\\TransactionType.cs" Link="Source\\Models\\TransactionType.cs" />
     <Compile Include="..\\Security\\CredentialPolicy.cs" Link="Source\\Security\\CredentialPolicy.cs" />
+    <Compile Include="..\\Security\\RequestFirewallPolicy.cs" Link="Source\\Security\\RequestFirewallPolicy.cs" />
     <Compile Include="..\\Services\\CloudStatementSyncService.cs" Link="Source\\Services\\CloudStatementSyncService.cs" />
     <Compile Include="..\\Services\\ICloudStatementSyncService.cs" Link="Source\\Services\\ICloudStatementSyncService.cs" />
     <Compile Include="..\\Services\\IExpenseService.cs" Link="Source\\Services\\IExpenseService.cs" />

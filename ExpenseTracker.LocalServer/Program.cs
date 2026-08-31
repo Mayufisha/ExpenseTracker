@@ -1,8 +1,10 @@
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 using ExpenseTracker.Security;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,7 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxConcurrentConnections = 100;
 });
 builder.Services.AddSingleton<LocalDataStore>();
+builder.Services.AddSingleton<SecurityEventRecorder>();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -56,7 +59,51 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
     context.Response.Headers.Append("Referrer-Policy", "no-referrer");
     context.Response.Headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    var rawTarget = context.Features.Get<IHttpRequestFeature>()?.RawTarget
+        ?? context.Request.Path.Value
+        ?? string.Empty;
+    var queryStart = rawTarget.IndexOf('?');
+    var rawPath = queryStart >= 0 ? rawTarget[..queryStart] : rawTarget;
+    var decision = RequestFirewallPolicy.Inspect(new FirewallRequest(
+        context.Request.Method.ToUpperInvariant(),
+        rawPath,
+        context.Request.Host.Host,
+        context.Connection.RemoteIpAddress is { } remoteAddress && IPAddress.IsLoopback(remoteAddress),
+        context.Request.ContentLength,
+        context.Request.ContentType,
+        context.Request.Headers.ContainsKey("Forwarded")
+            || context.Request.Headers.ContainsKey("X-Forwarded-For")
+            || context.Request.Headers.ContainsKey("X-Forwarded-Host")
+            || context.Request.Headers.ContainsKey("X-Forwarded-Proto"),
+        context.Request.QueryString.Value?.Length ?? 0));
+    if (!decision.IsAllowed)
+    {
+        var recorder = context.RequestServices.GetRequiredService<SecurityEventRecorder>();
+        await recorder.RecordAsync(context, decision.EventType);
+        if (decision.IsDecoy) await Task.Delay(Random.Shared.Next(40, 121));
+        context.Response.StatusCode = decision.StatusCode;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync("{\"message\":\"The request was rejected.\"}");
+        return;
+    }
+
+    if (rawPath is "/api/auth/signup" or "/api/auth/login")
+    {
+        var bodySizeFeature = context.Features.Get<IHttpMaxRequestBodySizeFeature>();
+        if (bodySizeFeature is { IsReadOnly: false }) bodySizeFeature.MaxRequestBodySize = 4 * 1024;
+    }
+
     await next();
+
+    if (context.Response.StatusCode is StatusCodes.Status401Unauthorized
+        or StatusCodes.Status429TooManyRequests)
+    {
+        var recorder = context.RequestServices.GetRequiredService<SecurityEventRecorder>();
+        var eventType = context.Response.StatusCode == StatusCodes.Status401Unauthorized
+            ? "authentication_rejected"
+            : "rate_limit_triggered";
+        await recorder.RecordAsync(context, eventType);
+    }
 });
 app.UseRateLimiter();
 
@@ -93,6 +140,12 @@ app.MapPut("/api/backup", async (HttpRequest request, JsonElement backup, LocalD
 app.MapGet("/api/backup", async (HttpRequest request, LocalDataStore store) =>
     await ExecuteAsync(() => store.GetBackupAsync(GetBearerToken(request)), app.Logger))
     .RequireRateLimiting("api");
+
+app.MapFallback(async (HttpContext context, SecurityEventRecorder recorder) =>
+{
+    await recorder.RecordAsync(context, "unknown_route");
+    return Results.NotFound(new { message = "The requested resource was not found." });
+});
 
 app.Run();
 

@@ -44,6 +44,7 @@ The Stripe adapter is test-only because Stripe prohibits personal peer-to-peer m
 
 - Add and edit accounts from multiple financial institutions.
 - Record institution name, account name/type, and optional last four digits.
+- Store each account's current balance and balance date so net worth is calculated from balances, not statement-period cash flow.
 - Attach CSV or PDF bank and credit-card statements.
 - CSV and text-based PDF statements import transactions automatically.
 - E-Transfers default to expenses; transfers marked `received`, `from`, `incoming`, or `autodeposit` are income.
@@ -107,12 +108,18 @@ For a single `Amount` column, the importer first infers the sign convention from
 - Active development session token: platform `SecureStorage`
 - Institution definitions and imported transaction data are included in backup/cloud sync.
 - Local filesystem paths are never included in cloud backups.
-- Split participants, shares, settlement state, and statement amount conventions are included in backup version 4.
+- Account balances, split participants, shares, settlement state, and statement amount conventions are included in backup version 5.
 - The publishable/anon key may be bundled in the client. Never place a Supabase `service_role` or secret key in this app.
 
 ## Local Development Server
 
-The development server listens only on `http://127.0.0.1:5088`. Account records are written to `%LOCALAPPDATA%\MoneyManager\LocalServer\accounts.json`. New passwords use salted PBKDF2-HMAC-SHA256 with 600,000 iterations, older hashes upgrade after login, random session tokens are stored only as hashes by the server, and sessions expire after 7 days. The API also enforces rate, body, header, and session-count limits.
+The development server listens only on `http://127.0.0.1:5088`. Account records are written to `%LOCALAPPDATA%\MoneyManager\LocalServer\accounts.json`. New passwords use salted PBKDF2-HMAC-SHA256 with 600,000 iterations, older hashes upgrade after login, random session tokens are stored only as hashes by the server, and sessions expire after 7 days. The API also enforces loopback and Host validation, route-specific method/body/content-type rules, traversal and forwarding-header rejection, rate limits, and decoy-route monitoring. Security events are written as bounded JSON lines without request bodies, credentials, tokens, emails, query values, or raw user-agent values.
+
+For defense in depth on Windows, run the idempotent inbound block rule from an elevated PowerShell terminal:
+
+```powershell
+.\scripts\Install-LocalFirewallRule.ps1
+```
 
 Do not expose this HTTP development server to a LAN or the internet. It is not the production multi-user backend.
 

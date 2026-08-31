@@ -19,7 +19,8 @@ The loopback ASP.NET Core server is for development only. It binds to `127.0.0.1
 - Backup imports are limited to 5 MB and validated completely before existing data is cleared.
 - Android app-data backup and cleartext traffic are disabled.
 - Payment contact and online-banking preferences are scoped to the signed-in user, and page/view-model instances are recreated after account switching.
-- The development API uses request/header limits, rate limiting, no-store security headers, bounded sessions, hashed bearer tokens, and generic server errors.
+- The development API uses a default-deny request firewall for known routes: loopback and Host checks, forwarding-header rejection, method/content-type/body/query constraints, traversal checks, request/header limits, rate limiting, no-store security headers, bounded sessions, hashed bearer tokens, and generic server errors.
+- Common scanner paths are decoys that never access account data. Probes, rejected authentication, rate-limit triggers, and unknown routes write privacy-minimized, size-bounded local audit events.
 - New local-development passwords require 12-128 characters and use salted PBKDF2-HMAC-SHA256 with 600,000 iterations. Older hashes are upgraded after a successful login.
 - Edge Functions restrict browser CORS to `ALLOWED_ORIGIN`, limit JSON request sizes, validate identifiers and HTTPS return URLs, and avoid exposing internal 5xx errors.
 - Stripe webhook signatures are verified before state changes, duplicate event IDs are rejected, and only a minimal event audit record is retained.
@@ -38,6 +39,7 @@ Complete every item before allowing real users or sensitive production data:
 8. Use signed Release builds, protected CI environments, least-privilege repository access, branch protection, and dependency/security scanning.
 9. Commission an independent penetration test covering Auth, RLS, Storage, Edge Functions, backup restore, payment webhooks, mobile binaries, and lost-device scenarios. Remediate and retest all significant findings.
 10. Establish vulnerability reporting, incident response, token/key revocation, breach notification, backup recovery, and audit-log review procedures.
+11. Put the hosted API behind provider-supported network controls, rate limits, bot protection, and alerting. Keep any production honeypot in a separate account/project with no route, credential, network trust, or storage shared with Money Manager.
 
 Supabase's official production checklist should be reviewed for every release: <https://supabase.com/docs/guides/deployment/going-into-prod>.
 
@@ -45,6 +47,7 @@ Implementation baselines:
 
 - OWASP password storage guidance: <https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html>
 - ASP.NET Core rate limiting: <https://learn.microsoft.com/aspnet/core/performance/rate-limit>
+- OWASP application logging guidance: <https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html>
 - .NET MAUI secure storage: <https://learn.microsoft.com/dotnet/maui/platform-integration/storage/secure-storage>
 - Supabase Storage access control: <https://supabase.com/docs/guides/storage/security/access-control>
 
@@ -61,6 +64,14 @@ Before handling higher-risk financial data, decide whether to add SQLCipher or f
 - Test expired, revoked, malformed, and lower-assurance tokens.
 - Test object names outside `<auth-user-id>/<sha256>.csv|pdf`; all must fail.
 - Repeat these checks after every RLS or backup-schema change.
+
+## Firewall And Deception Limits
+
+The included application firewall and `Install-LocalFirewallRule.ps1` protect the loopback development API only. They do not configure Supabase's network edge and must not be treated as a production WAF. The local decoys provide detection evidence, not proof that an attacker has been contained.
+
+Security audit files are stored beside the development account store as `security-events.jsonl`, rotate at 5 MB, and retain one previous file. They intentionally omit request bodies, authorization headers, tokens, email addresses, query values, route text, IP addresses, and raw user-agent strings. A client fingerprint is a truncated one-way hash used only to correlate repeated local events.
+
+Do not connect a production honeypot to the production Supabase project. A useful production deception system needs a separate trust boundary, strict cost/volume controls, centralized alerts, retention rules, and an incident-response owner. Otherwise it adds attack surface and can become a denial-of-service or data-contamination path.
 
 ## Payment Boundary
 
