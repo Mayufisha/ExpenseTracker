@@ -52,6 +52,21 @@ public class TransactionsViewModelTests
         Assert.Equal(3, vm.Transactions.Count);
     }
 
+    [Fact]
+    public async Task LoadAsync_NoCurrentMonthTransactions_ShowsEmptyCurrentMonth()
+    {
+        var service = new FakeExpenseService(new[]
+        {
+            NewExpense(DateTime.Today.AddMonths(-2))
+        });
+
+        var vm = new TransactionsViewModel(service);
+        await vm.LoadAsync();
+
+        Assert.Equal(DateTime.Today.ToString("yyyy-MM"), vm.SelectedMonthFilter?.Key);
+        Assert.Empty(vm.Transactions);
+    }
+
     private static Transaction NewExpense(DateTime date)
     {
         var tx = new Transaction

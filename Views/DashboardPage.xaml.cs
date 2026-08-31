@@ -19,6 +19,13 @@ public partial class DashboardPage : ContentPage
     {
         base.OnAppearing();
         await _viewModel.LoadAsync();
+        RenderCharts();
+    }
+
+    private void OnMonthChanged(object sender, EventArgs e) => RenderCharts();
+
+    private void RenderCharts()
+    {
         var isDark = Application.Current?.RequestedTheme == AppTheme.Dark;
         var chartLabelColor = isDark ? SKColors.LightGray : SKColors.Gray;
         var chartValueColor = isDark ? SKColors.White : SKColors.Black;

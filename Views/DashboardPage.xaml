@@ -11,9 +11,19 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="16">
 
-            <Label Text="Dashboard"
-                   FontSize="32"
-                   FontAttributes="Bold" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16">
+                <Label Text="Dashboard"
+                       FontSize="32"
+                       FontAttributes="Bold"
+                       VerticalOptions="Center" />
+                <VerticalStackLayout Grid.Column="1" WidthRequest="220" Spacing="2">
+                    <Label Text="Cash-flow month" Style="{StaticResource MutedLabel}" />
+                    <Picker ItemsSource="{Binding MonthFilters}"
+                            ItemDisplayBinding="{Binding Label, x:DataType=models:MonthFilterOption}"
+                            SelectedItem="{Binding SelectedMonthFilter}"
+                            SelectedIndexChanged="OnMonthChanged" />
+                </VerticalStackLayout>
+            </Grid>
 
             <Grid ColumnDefinitions="*,*"
                   RowDefinitions="Auto,Auto,Auto"
@@ -25,7 +35,7 @@
                         Padding="12"
                         BackgroundColor="{AppThemeBinding Light=#E8F7F0, Dark=#0E2A24}">
                     <VerticalStackLayout>
-                        <Label Text="Income" FontAttributes="Bold" />
+                        <Label Text="Monthly Income" FontAttributes="Bold" />
                         <Label Text="{Binding TotalIncome, StringFormat='${0:F2}'}"
                                FontSize="20"
                                FontAttributes="Bold" />
@@ -37,7 +47,7 @@
                         Padding="12"
                         BackgroundColor="{AppThemeBinding Light=#FDECEC, Dark=#2B1616}">
                     <VerticalStackLayout>
-                        <Label Text="Expenses" FontAttributes="Bold" />
+                        <Label Text="Monthly Expenses" FontAttributes="Bold" />
                         <Label Text="{Binding TotalExpense, StringFormat='${0:F2}'}"
                                FontSize="20"
                                FontAttributes="Bold" />
@@ -101,7 +111,7 @@
                    CornerRadius="16"
                    HasShadow="True">
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="Financial Composition"
+                    <Label Text="Selected Month and Balances"
                            FontSize="18"
                            FontAttributes="Bold" />
                     <chart:ChartView x:Name="CompositionChart"
@@ -123,7 +133,7 @@
             </Border>
 
 
-            <Label Text="Recent Transactions"
+            <Label Text="Transactions in Selected Month"
                    FontSize="18"
                    FontAttributes="Bold"
                    Margin="0,16,0,0" />

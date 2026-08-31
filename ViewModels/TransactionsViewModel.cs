@@ -93,8 +93,10 @@ public class TransactionsViewModel : BaseViewModel
     {
         MonthFilters.Add(new MonthFilterOption { Key = "all", Label = "All Months" });
 
+        var currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
         var monthKeys = _allTransactions
             .Select(t => new DateTime(t.Date.Year, t.Date.Month, 1))
+            .Append(currentMonth)
             .Distinct()
             .OrderByDescending(d => d)
             .ToList();
@@ -109,8 +111,7 @@ public class TransactionsViewModel : BaseViewModel
         }
 
         var currentMonthKey = DateTime.Today.ToString("yyyy-MM");
-        SelectedMonthFilter = MonthFilters.FirstOrDefault(f => f.Key == currentMonthKey)
-            ?? MonthFilters.FirstOrDefault();
+        SelectedMonthFilter = MonthFilters.First(f => f.Key == currentMonthKey);
     }
 
     private void ApplyFilter()

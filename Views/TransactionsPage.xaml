@@ -15,7 +15,7 @@
             <Picker Grid.Column="0"
                     Title="Month"
                     ItemsSource="{Binding MonthFilters}"
-                    ItemDisplayBinding="{Binding Label}"
+                    ItemDisplayBinding="{Binding Label, x:DataType=models:MonthFilterOption}"
                     SelectedItem="{Binding SelectedMonthFilter}" />
             <Picker Grid.Column="1"
                     Title="Institution"

@@ -9,9 +9,25 @@ public class DashboardViewModel : BaseViewModel
     private readonly IExpenseService _expenseService;
     private readonly IFinancialAccountService _financialAccountService;
     private readonly IStatementImportService? _statementImportService;
+    private readonly List<Transaction> _allTransactions = new();
+    private IReadOnlyList<FinancialAccount> _accounts = Array.Empty<FinancialAccount>();
 
     public ObservableCollection<Transaction> Transactions { get; } = new();
+    public ObservableCollection<MonthFilterOption> MonthFilters { get; } = new();
     public IReadOnlyList<MonthlyNetPoint> MonthlyNetPoints { get; private set; } = Array.Empty<MonthlyNetPoint>();
+
+    private MonthFilterOption? _selectedMonthFilter;
+    public MonthFilterOption? SelectedMonthFilter
+    {
+        get => _selectedMonthFilter;
+        set
+        {
+            if (ReferenceEquals(_selectedMonthFilter, value)) return;
+            _selectedMonthFilter = value;
+            OnPropertyChanged();
+            ApplySelectedMonth();
+        }
+    }
 
     decimal totalIncome;
     public decimal TotalIncome
@@ -77,35 +93,99 @@ public class DashboardViewModel : BaseViewModel
         if (IsBusy) return;
         IsBusy = true;
 
+        try
+        {
+            Transactions.Clear();
+            _allTransactions.Clear();
+            MonthFilters.Clear();
+            if (_statementImportService != null)
+                await _statementImportService.ReclassifyAttachedTransactionsAsync();
+
+            _allTransactions.AddRange(await _expenseService.GetTransactionsAsync());
+            _accounts = await _financialAccountService.GetAccountsAsync();
+            BuildMonthFilters();
+            MonthlyNetPoints = BuildMonthlyNetPoints(_allTransactions, 6);
+            OnPropertyChanged(nameof(MonthlyNetPoints));
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private void BuildMonthFilters()
+    {
+        var currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        var months = _allTransactions
+            .Select(transaction => new DateTime(transaction.Date.Year, transaction.Date.Month, 1))
+            .Append(currentMonth)
+            .Distinct()
+            .OrderByDescending(month => month);
+
+        foreach (var month in months)
+        {
+            MonthFilters.Add(new MonthFilterOption
+            {
+                Key = month.ToString("yyyy-MM"),
+                Label = month.ToString("MMMM yyyy")
+            });
+        }
+
+        var selectedKey = SelectedMonthFilter?.Key ?? currentMonth.ToString("yyyy-MM");
+        SelectedMonthFilter = MonthFilters.FirstOrDefault(option => option.Key == selectedKey)
+            ?? MonthFilters.First(option => option.Key == currentMonth.ToString("yyyy-MM"));
+    }
+
+    private void ApplySelectedMonth()
+    {
+        if (!TryGetSelectedMonth(out var start)) return;
+        var end = start.AddMonths(1);
+        var monthlyTransactions = _allTransactions
+            .Where(transaction => transaction.Date.Date >= start && transaction.Date.Date < end)
+            .OrderByDescending(transaction => transaction.Date)
+            .ToList();
+
         Transactions.Clear();
-        if (_statementImportService != null)
-            await _statementImportService.ReclassifyAttachedTransactionsAsync();
+        foreach (var transaction in monthlyTransactions)
+            Transactions.Add(transaction);
 
-        var items = await _expenseService.GetTransactionsAsync();
-        var accounts = await _financialAccountService.GetAccountsAsync();
-
-        foreach (var t in items)
-            Transactions.Add(t);
-
-        TotalIncome = Transactions.Where(t => t.ParsedType == TransactionType.Income).Sum(t => t.Amount);
-        TotalExpense = Transactions.Where(t => t.ParsedType == TransactionType.Expense).Sum(t => t.Amount);
-        TotalAssets = Transactions.Where(t => t.ParsedType == TransactionType.Asset).Sum(t => t.Amount)
-            + accounts.Sum(account => account.AssetValue);
-        TotalLiabilities = Transactions.Where(t => t.ParsedType == TransactionType.Liability).Sum(t => t.Amount)
-            + accounts.Sum(account => account.LiabilityValue);
-
+        TotalIncome = monthlyTransactions
+            .Where(transaction => transaction.ParsedType == TransactionType.Income)
+            .Sum(transaction => transaction.Amount);
+        TotalExpense = monthlyTransactions
+            .Where(transaction => transaction.ParsedType == TransactionType.Expense)
+            .Sum(transaction => transaction.Amount);
+        TotalAssets = _allTransactions
+            .Where(transaction => transaction.ParsedType == TransactionType.Asset)
+            .Sum(transaction => transaction.Amount)
+            + _accounts.Sum(account => account.AssetValue);
+        TotalLiabilities = _allTransactions
+            .Where(transaction => transaction.ParsedType == TransactionType.Liability)
+            .Sum(transaction => transaction.Amount)
+            + _accounts.Sum(account => account.LiabilityValue);
         NetCashFlow = TotalIncome - TotalExpense;
         NetWorth = TotalAssets - TotalLiabilities;
-        var missingBalanceCount = accounts.Count(account => !account.CurrentBalance.HasValue);
-        NetWorthStatus = accounts.Count == 0
+
+        var missingBalanceCount = _accounts.Count(account => !account.CurrentBalance.HasValue);
+        NetWorthStatus = _accounts.Count == 0
             ? "Add financial accounts and their current balances to calculate net worth."
             : missingBalanceCount > 0
                 ? $"Set the current balance for {missingBalanceCount} account{(missingBalanceCount == 1 ? string.Empty : "s")} to complete net worth. Statements alone only show cash flow."
-                : $"Based on {accounts.Count} account balance{(accounts.Count == 1 ? string.Empty : "s")} plus manually tracked assets and liabilities.";
-        MonthlyNetPoints = BuildMonthlyNetPoints(Transactions, 6);
-        OnPropertyChanged(nameof(MonthlyNetPoints));
+                : $"Based on {_accounts.Count} account balance{(_accounts.Count == 1 ? string.Empty : "s")} plus manually tracked assets and liabilities.";
+    }
 
-        IsBusy = false;
+    private bool TryGetSelectedMonth(out DateTime month)
+    {
+        var parsed = DateTime.TryParseExact(
+            $"{SelectedMonthFilter?.Key}-01",
+            "yyyy-MM-dd",
+            null,
+            System.Globalization.DateTimeStyles.None,
+            out month);
+        month = parsed
+            ? new DateTime(month.Year, month.Month, 1)
+            : new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        return true;
     }
 
     private static IReadOnlyList<MonthlyNetPoint> BuildMonthlyNetPoints(IEnumerable<Transaction> transactions, int monthCount)

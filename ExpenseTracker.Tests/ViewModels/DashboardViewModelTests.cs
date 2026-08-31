@@ -16,7 +16,8 @@ public class DashboardViewModelTests
             NewTransaction(1000m, TransactionType.Income, today),
             NewTransaction(300m, TransactionType.Expense, today),
             NewTransaction(5000m, TransactionType.Asset, today),
-            NewTransaction(1200m, TransactionType.Liability, today)
+            NewTransaction(1200m, TransactionType.Liability, today),
+            NewTransaction(40_000m, TransactionType.Expense, today.AddMonths(-1))
         };
 
         var service = new FakeExpenseService(transactions);
@@ -36,6 +37,15 @@ public class DashboardViewModelTests
         Assert.Equal(700m, vm.NetCashFlow);
         Assert.Equal(5900m, vm.NetWorth);
         Assert.Contains("2 account balances", vm.NetWorthStatus);
+        Assert.Equal(4, vm.Transactions.Count);
+
+        vm.SelectedMonthFilter = vm.MonthFilters.First(option =>
+            option.Key == today.AddMonths(-1).ToString("yyyy-MM"));
+
+        Assert.Equal(40_000m, vm.TotalExpense);
+        Assert.Equal(-40_000m, vm.NetCashFlow);
+        Assert.Single(vm.Transactions);
+        Assert.Equal(5900m, vm.NetWorth);
     }
 
     private static Transaction NewTransaction(decimal amount, TransactionType type, DateTime date)
