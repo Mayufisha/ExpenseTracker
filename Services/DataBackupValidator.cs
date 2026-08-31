@@ -15,7 +15,7 @@ public static class DataBackupValidator
 
     public static void Validate(DataBackup backup)
     {
-        if (backup.Version is < 1 or > 4)
+        if (backup.Version is < 1 or > 5)
             throw new InvalidDataException("This backup version is not supported.");
 
         EnsureCollection(backup.Transactions, MaximumTransactions, "transactions");
@@ -44,6 +44,9 @@ public static class DataBackupValidator
             EnsureRequiredLength(account.AccountName, 200, "account name");
             EnsureLength(account.AccountType, 50, "account type");
             EnsureLength(account.AmountConvention, 50, "amount convention");
+            if (account.CurrentBalance.HasValue
+                && Math.Abs(account.CurrentBalance.Value) > 1_000_000_000_000m)
+                throw new InvalidDataException("An account contains an invalid current balance.");
             if (account.LastFour.Length > 0
                 && (account.LastFour.Length != 4 || account.LastFour.Any(character => !char.IsDigit(character))))
                 throw new InvalidDataException("An account contains an invalid last-four value.");

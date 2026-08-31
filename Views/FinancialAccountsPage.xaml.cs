@@ -1,6 +1,7 @@
 using ExpenseTracker.Models;
 using ExpenseTracker.Services;
 using ExpenseTracker.ViewModels;
+using System.Globalization;
 
 namespace ExpenseTracker.Views;
 
@@ -42,6 +43,7 @@ public partial class FinancialAccountsPage : ContentPage
         var institution = InstitutionEntry.Text?.Trim() ?? string.Empty;
         var accountName = AccountNameEntry.Text?.Trim() ?? string.Empty;
         var lastFour = LastFourEntry.Text?.Trim() ?? string.Empty;
+        var balanceText = CurrentBalanceEntry.Text?.Trim() ?? string.Empty;
 
         if (string.IsNullOrWhiteSpace(institution) || string.IsNullOrWhiteSpace(accountName))
         {
@@ -61,13 +63,35 @@ public partial class FinancialAccountsPage : ContentPage
             return;
         }
 
+        decimal? currentBalance = null;
+        if (!string.IsNullOrWhiteSpace(balanceText))
+        {
+            var styles = NumberStyles.Number | NumberStyles.AllowCurrencySymbol;
+            if (!decimal.TryParse(balanceText, styles, CultureInfo.CurrentCulture, out var parsedBalance)
+                && !decimal.TryParse(balanceText, styles, CultureInfo.InvariantCulture, out parsedBalance))
+            {
+                ShowEditorError("Enter a valid current balance or leave it blank.");
+                return;
+            }
+
+            if (Math.Abs(parsedBalance) > 1_000_000_000_000m)
+            {
+                ShowEditorError("The current balance is outside the supported range.");
+                return;
+            }
+
+            currentBalance = parsedBalance;
+        }
+
         try
         {
             var account = _editingAccount ?? new FinancialAccount();
             account.InstitutionName = institution;
             account.AccountName = accountName;
-            account.AccountType = AccountTypePicker.SelectedIndex == 1 ? "Credit Card" : "Bank Account";
+            account.AccountType = AccountTypePicker.SelectedItem?.ToString() ?? "Bank Account";
             account.LastFour = lastFour;
+            account.CurrentBalance = currentBalance;
+            account.BalanceAsOf = currentBalance.HasValue ? BalanceAsOfPicker.Date : null;
             account.ParsedAmountConvention = AmountConventionPicker.SelectedIndex == 1
                 ? StatementAmountConvention.PositiveAmountsAreExpenses
                 : StatementAmountConvention.NegativeAmountsAreExpenses;
@@ -147,10 +171,11 @@ public partial class FinancialAccountsPage : ContentPage
         EditorTitleLabel.Text = account == null ? "Add financial account" : "Edit financial account";
         InstitutionEntry.Text = account?.InstitutionName ?? string.Empty;
         AccountNameEntry.Text = account?.AccountName ?? string.Empty;
-        AccountTypePicker.SelectedIndex = account?.AccountType.Contains("credit", StringComparison.OrdinalIgnoreCase) == true
-            ? 1
-            : 0;
+        var accountTypeIndex = account == null ? 0 : AccountTypePicker.Items.IndexOf(account.AccountType);
+        AccountTypePicker.SelectedIndex = accountTypeIndex >= 0 ? accountTypeIndex : 0;
         LastFourEntry.Text = account?.LastFour ?? string.Empty;
+        CurrentBalanceEntry.Text = account?.CurrentBalance?.ToString("0.00", CultureInfo.CurrentCulture) ?? string.Empty;
+        BalanceAsOfPicker.Date = account?.BalanceAsOf?.Date ?? DateTime.Today;
         AmountConventionPicker.SelectedIndex = account?.ParsedAmountConvention == StatementAmountConvention.PositiveAmountsAreExpenses
             ? 1
             : 0;

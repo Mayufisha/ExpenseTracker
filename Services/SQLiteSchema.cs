@@ -30,4 +30,18 @@ internal static class SQLiteSchema
                 $"ALTER TABLE \"{tableName}\" ADD COLUMN \"{columnName}\" TEXT NOT NULL DEFAULT ''");
         }
     }
+
+    public static async Task EnsureNullableColumnAsync(
+        SQLiteAsyncConnection database,
+        string tableName,
+        string columnName,
+        string storageType)
+    {
+        var columns = await database.GetTableInfoAsync(tableName);
+        if (columns.All(column => !column.Name.Equals(columnName, StringComparison.OrdinalIgnoreCase)))
+        {
+            await database.ExecuteAsync(
+                $"ALTER TABLE \"{tableName}\" ADD COLUMN \"{columnName}\" {storageType} NULL");
+        }
+    }
 }

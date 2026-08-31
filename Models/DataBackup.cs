@@ -2,7 +2,7 @@ namespace ExpenseTracker.Models;
 
 public class DataBackup
 {
-    public int Version { get; set; } = 4;
+    public int Version { get; set; } = 5;
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
     public List<TransactionBackupItem> Transactions { get; set; } = new();
     public List<FinancialAccountBackupItem> FinancialAccounts { get; set; } = new();
@@ -59,6 +59,8 @@ public class FinancialAccountBackupItem
     public string AccountType { get; set; } = "Bank Account";
     public string AmountConvention { get; set; } = string.Empty;
     public string LastFour { get; set; } = string.Empty;
+    public decimal? CurrentBalance { get; set; }
+    public DateTime? BalanceAsOf { get; set; }
 }
 
 public class StatementBackupItem

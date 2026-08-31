@@ -73,7 +73,7 @@
                         Padding="12"
                         BackgroundColor="{AppThemeBinding Light=#F3F4F6, Dark=#1F2937}">
                     <VerticalStackLayout>
-                        <Label Text="Net Cashflow" FontAttributes="Bold" />
+                        <Label Text="Statement Cash Flow" FontAttributes="Bold" />
                         <Label Text="{Binding NetCashFlow, StringFormat='${0:F2}'}"
                                FontSize="20"
                                FontAttributes="Bold" />
@@ -113,10 +113,12 @@
                     Padding="12"
                     BackgroundColor="{AppThemeBinding Light=#ECFDF3, Dark=#123024}">
                 <VerticalStackLayout>
-                    <Label Text="Net Worth" FontAttributes="Bold" />
+                    <Label Text="Account Net Worth" FontAttributes="Bold" />
                     <Label Text="{Binding NetWorth, StringFormat='${0:F2}'}"
                            FontSize="22"
                            FontAttributes="Bold" />
+                    <Label Text="{Binding NetWorthStatus}"
+                           Style="{StaticResource MutedLabel}" />
                 </VerticalStackLayout>
             </Border>
 

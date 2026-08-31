@@ -1,4 +1,5 @@
 using ExpenseTracker.Models;
+using ExpenseTracker.Services;
 using ExpenseTracker.Tests.TestDoubles;
 using ExpenseTracker.ViewModels;
 
@@ -19,16 +20,22 @@ public class DashboardViewModelTests
         };
 
         var service = new FakeExpenseService(transactions);
-        var vm = new DashboardViewModel(service);
+        var accountService = new FakeFinancialAccountService(
+        [
+            new FinancialAccount { AccountType = "Bank Account", CurrentBalance = 2500m },
+            new FinancialAccount { AccountType = "Credit Card", CurrentBalance = 400m }
+        ]);
+        var vm = new DashboardViewModel(service, accountService);
 
         await vm.LoadAsync();
 
         Assert.Equal(1000m, vm.TotalIncome);
         Assert.Equal(300m, vm.TotalExpense);
-        Assert.Equal(5000m, vm.TotalAssets);
-        Assert.Equal(1200m, vm.TotalLiabilities);
+        Assert.Equal(7500m, vm.TotalAssets);
+        Assert.Equal(1600m, vm.TotalLiabilities);
         Assert.Equal(700m, vm.NetCashFlow);
-        Assert.Equal(3800m, vm.NetWorth);
+        Assert.Equal(5900m, vm.NetWorth);
+        Assert.Contains("2 account balances", vm.NetWorthStatus);
     }
 
     private static Transaction NewTransaction(decimal amount, TransactionType type, DateTime date)
@@ -40,5 +47,22 @@ public class DashboardViewModelTests
         };
         tx.ParsedType = type;
         return tx;
+    }
+
+    private sealed class FakeFinancialAccountService(IEnumerable<FinancialAccount> accounts)
+        : IFinancialAccountService
+    {
+        private readonly IReadOnlyList<FinancialAccount> _accounts = accounts.ToList();
+
+        public Task<IReadOnlyList<FinancialAccount>> GetAccountsAsync() => Task.FromResult(_accounts);
+        public Task AddOrUpdateAccountAsync(FinancialAccount account) => Task.CompletedTask;
+        public Task DeleteAccountAsync(int accountId) => Task.CompletedTask;
+        public Task ClearAllAsync() => Task.CompletedTask;
+        public Task<IReadOnlyList<StatementAttachment>> GetStatementsAsync(int accountId) =>
+            Task.FromResult<IReadOnlyList<StatementAttachment>>(Array.Empty<StatementAttachment>());
+        public Task<IReadOnlyList<StatementAttachment>> GetAllStatementsAsync() =>
+            Task.FromResult<IReadOnlyList<StatementAttachment>>(Array.Empty<StatementAttachment>());
+        public Task<bool> HasStatementAsync(int accountId, string fileHash) => Task.FromResult(false);
+        public Task AddStatementAsync(StatementAttachment statement) => Task.CompletedTask;
     }
 }

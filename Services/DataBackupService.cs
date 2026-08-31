@@ -111,7 +111,9 @@ public class DataBackupService : IBackupService
                 AccountName = a.AccountName,
                 AccountType = a.AccountType,
                 AmountConvention = a.AmountConvention,
-                LastFour = a.LastFour
+                LastFour = a.LastFour,
+                CurrentBalance = a.CurrentBalance,
+                BalanceAsOf = a.BalanceAsOf
             }).ToList(),
             Statements = statements
                 .Where(statement => accountsById.ContainsKey(statement.FinancialAccountId))
@@ -161,7 +163,9 @@ public class DataBackupService : IBackupService
                 AccountName = account.AccountName,
                 AccountType = account.AccountType,
                 AmountConvention = account.AmountConvention,
-                LastFour = account.LastFour
+                LastFour = account.LastFour,
+                CurrentBalance = account.CurrentBalance,
+                BalanceAsOf = account.BalanceAsOf
             });
         }
 

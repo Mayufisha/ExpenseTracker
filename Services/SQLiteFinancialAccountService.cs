@@ -24,6 +24,16 @@ public class SQLiteFinancialAccountService : IFinancialAccountService
         await SQLiteSchema.EnsureOwnerColumnAsync(_db, nameof(FinancialAccount));
         await SQLiteSchema.EnsureOwnerColumnAsync(_db, nameof(StatementAttachment));
         await SQLiteSchema.EnsureTextColumnAsync(_db, nameof(FinancialAccount), nameof(FinancialAccount.AmountConvention));
+        await SQLiteSchema.EnsureNullableColumnAsync(
+            _db,
+            nameof(FinancialAccount),
+            nameof(FinancialAccount.CurrentBalance),
+            "TEXT");
+        await SQLiteSchema.EnsureNullableColumnAsync(
+            _db,
+            nameof(FinancialAccount),
+            nameof(FinancialAccount.BalanceAsOf),
+            "INTEGER");
         await EnsureStatementSchemaAsync();
         _initialized = true;
     }
