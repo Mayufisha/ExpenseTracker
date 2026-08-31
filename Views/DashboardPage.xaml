@@ -97,9 +97,18 @@
                    HasShadow="True">
 
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="6-Month Net Cashflow Trend"
-                           FontSize="18"
-                           FontAttributes="Bold" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                        <Label Text="{Binding TrendTitle}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               VerticalOptions="Center" />
+                        <Picker Grid.Column="1"
+                                Title="Months"
+                                WidthRequest="100"
+                                ItemsSource="{Binding TrendRangeOptions}"
+                                SelectedItem="{Binding SelectedTrendMonths, Mode=TwoWay}"
+                                SelectedIndexChanged="OnTrendRangeChanged" />
+                    </Grid>
 
                     <chart:ChartView x:Name="NetFlowChart"
                                      HeightRequest="220" />

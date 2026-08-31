@@ -14,7 +14,24 @@ public class DashboardViewModel : BaseViewModel
 
     public ObservableCollection<Transaction> Transactions { get; } = new();
     public ObservableCollection<MonthFilterOption> MonthFilters { get; } = new();
+    public IReadOnlyList<int> TrendRangeOptions { get; } = [3, 6, 12];
     public IReadOnlyList<MonthlyNetPoint> MonthlyNetPoints { get; private set; } = Array.Empty<MonthlyNetPoint>();
+
+    private int _selectedTrendMonths = 6;
+    public int SelectedTrendMonths
+    {
+        get => _selectedTrendMonths;
+        set
+        {
+            if (_selectedTrendMonths == value || !TrendRangeOptions.Contains(value)) return;
+            _selectedTrendMonths = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(TrendTitle));
+            RefreshTrendPoints();
+        }
+    }
+
+    public string TrendTitle => $"{SelectedTrendMonths}-Month Net Cash Flow Trend";
 
     private MonthFilterOption? _selectedMonthFilter;
     public MonthFilterOption? SelectedMonthFilter
@@ -104,8 +121,7 @@ public class DashboardViewModel : BaseViewModel
             _allTransactions.AddRange(await _expenseService.GetTransactionsAsync());
             _accounts = await _financialAccountService.GetAccountsAsync();
             BuildMonthFilters();
-            MonthlyNetPoints = BuildMonthlyNetPoints(_allTransactions, 6);
-            OnPropertyChanged(nameof(MonthlyNetPoints));
+            RefreshTrendPoints();
         }
         finally
         {
@@ -188,6 +204,12 @@ public class DashboardViewModel : BaseViewModel
         return true;
     }
 
+    private void RefreshTrendPoints()
+    {
+        MonthlyNetPoints = BuildMonthlyNetPoints(_allTransactions, SelectedTrendMonths);
+        OnPropertyChanged(nameof(MonthlyNetPoints));
+    }
+
     private static IReadOnlyList<MonthlyNetPoint> BuildMonthlyNetPoints(IEnumerable<Transaction> transactions, int monthCount)
     {
         var months = Enumerable.Range(0, monthCount)
@@ -204,7 +226,7 @@ public class DashboardViewModel : BaseViewModel
             var expense = monthItems.Where(t => t.ParsedType == TransactionType.Expense).Sum(t => t.Amount);
             result.Add(new MonthlyNetPoint
             {
-                Label = month.ToString("MMM"),
+                Label = month.ToString(monthCount > 6 ? "MMM yy" : "MMM"),
                 NetCashFlow = income - expense
             });
         }

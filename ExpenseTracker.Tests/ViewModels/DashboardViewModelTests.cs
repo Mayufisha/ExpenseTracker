@@ -38,6 +38,14 @@ public class DashboardViewModelTests
         Assert.Equal(5900m, vm.NetWorth);
         Assert.Contains("2 account balances", vm.NetWorthStatus);
         Assert.Equal(4, vm.Transactions.Count);
+        Assert.Equal(6, vm.MonthlyNetPoints.Count);
+
+        vm.SelectedTrendMonths = 3;
+        Assert.Equal(3, vm.MonthlyNetPoints.Count);
+
+        vm.SelectedTrendMonths = 12;
+        Assert.Equal(12, vm.MonthlyNetPoints.Count);
+        Assert.All(vm.MonthlyNetPoints, point => Assert.Contains(' ', point.Label));
 
         vm.SelectedMonthFilter = vm.MonthFilters.First(option =>
             option.Key == today.AddMonths(-1).ToString("yyyy-MM"));

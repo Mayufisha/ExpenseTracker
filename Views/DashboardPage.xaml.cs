@@ -24,6 +24,8 @@ public partial class DashboardPage : ContentPage
 
     private void OnMonthChanged(object sender, EventArgs e) => RenderCharts();
 
+    private void OnTrendRangeChanged(object sender, EventArgs e) => RenderCharts();
+
     private void RenderCharts()
     {
         var isDark = Application.Current?.RequestedTheme == AppTheme.Dark;

@@ -3,6 +3,7 @@
 Money Manager is a cross-platform personal finance app built with .NET MAUI, SQLite, PostgreSQL, Supabase, and MVVM. It combines expense tracking, financial accounts, statement imports, goals, schedules, and shared-expense management. Builds with Supabase configuration use hosted authentication and per-user cross-device backups automatically; unconfigured development builds fall back to the loopback ASP.NET Core test server.
 
 Dashboard income, expense, cash-flow totals, and transaction rows are scoped to the selected month. Net worth is a separate current-balance snapshot and never sums statement turnover.
+The dashboard trend graph can display the latest 3, 6, or 12 months without changing the selected month's headline totals.
 
 ## Features
 
