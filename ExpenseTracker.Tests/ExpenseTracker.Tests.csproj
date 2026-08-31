@@ -34,6 +34,7 @@
     <Compile Include="..\\Models\\TimeRange.cs" Link="Source\\Models\\TimeRange.cs" />
     <Compile Include="..\\Models\\Transaction.cs" Link="Source\\Models\\Transaction.cs" />
     <Compile Include="..\\Models\\TransactionType.cs" Link="Source\\Models\\TransactionType.cs" />
+    <Compile Include="..\\Security\\CredentialPolicy.cs" Link="Source\\Security\\CredentialPolicy.cs" />
     <Compile Include="..\\Services\\CloudStatementSyncService.cs" Link="Source\\Services\\CloudStatementSyncService.cs" />
     <Compile Include="..\\Services\\ICloudStatementSyncService.cs" Link="Source\\Services\\ICloudStatementSyncService.cs" />
     <Compile Include="..\\Services\\IExpenseService.cs" Link="Source\\Services\\IExpenseService.cs" />
@@ -63,6 +64,8 @@
     <Compile Include="..\\Services\\PdfStatementParser.cs" Link="Source\\Services\\PdfStatementParser.cs" />
     <Compile Include="..\\Services\\StatementTransactionClassifier.cs" Link="Source\\Services\\StatementTransactionClassifier.cs" />
     <Compile Include="..\\Services\\StatementImportService.cs" Link="Source\\Services\\StatementImportService.cs" />
+    <Compile Include="..\\Services\\StatementFileValidator.cs" Link="Source\\Services\\StatementFileValidator.cs" />
+    <Compile Include="..\\Services\\DataBackupValidator.cs" Link="Source\\Services\\DataBackupValidator.cs" />
     <Compile Include="..\\Services\\UserDataContext.cs" Link="Source\\Services\\UserDataContext.cs" />
   </ItemGroup>
 

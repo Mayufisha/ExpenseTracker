@@ -23,7 +23,8 @@ public static class MauiProgram
 
         var dbPath = Path.Combine(FileSystem.AppDataDirectory, "expenses.db3");
 
-        builder.Services.AddSingleton(SupabaseOptions.FromAssembly());
+        var supabaseOptions = SupabaseOptions.FromAssembly();
+        builder.Services.AddSingleton(supabaseOptions);
         builder.Services.AddSingleton(new LocalServerOptions());
         builder.Services.AddSingleton(new HttpClient { Timeout = TimeSpan.FromSeconds(10) });
         builder.Services.AddSingleton<IUserDataContext, UserDataContext>();
@@ -44,7 +45,10 @@ public static class MauiProgram
             dbPath,
             provider.GetRequiredService<IUserDataContext>()));
         builder.Services.AddSingleton<IPaymentRequestService, PaymentRequestService>();
-        builder.Services.AddSingleton<IPaymentGatewayService, LocalPaymentGatewayService>();
+        if (supabaseOptions.IsConfigured)
+            builder.Services.AddSingleton<IPaymentGatewayService, SupabasePaymentGatewayService>();
+        else
+            builder.Services.AddSingleton<IPaymentGatewayService, LocalPaymentGatewayService>();
         builder.Services.AddSingleton<ICloudStatementSyncService, CloudStatementSyncService>();
         builder.Services.AddSingleton<IStatementImportService>(provider => new StatementImportService(
             provider.GetRequiredService<IFinancialAccountService>(),
@@ -53,7 +57,10 @@ public static class MauiProgram
             provider.GetRequiredService<IUserDataContext>(),
             Path.Combine(FileSystem.AppDataDirectory, "Statements")));
         builder.Services.AddSingleton<IBackupService, DataBackupService>();
-        builder.Services.AddSingleton<IAccountService, LocalServerAccountService>();
+        if (supabaseOptions.IsConfigured)
+            builder.Services.AddSingleton<IAccountService, AccountService>();
+        else
+            builder.Services.AddSingleton<IAccountService, LocalServerAccountService>();
 
         builder.Services.AddSingleton<DashboardViewModel>();
         builder.Services.AddSingleton<TransactionsViewModel>();

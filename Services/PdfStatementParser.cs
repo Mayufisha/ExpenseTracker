@@ -8,6 +8,9 @@ namespace ExpenseTracker.Services;
 
 public static partial class PdfStatementParser
 {
+    private const int MaximumPageCount = 500;
+    private const int MaximumExtractedCharacters = 5_000_000;
+
     public static Task<IReadOnlyList<ParsedStatementTransaction>> ParseAsync(
         string filePath,
         StatementAmountConvention amountConvention)
@@ -15,9 +18,20 @@ public static partial class PdfStatementParser
         return Task.Run<IReadOnlyList<ParsedStatementTransaction>>(() =>
         {
             using var document = PdfDocument.Open(filePath);
-            var extractedPages = document.GetPages()
-                .Select(page => ContentOrderTextExtractor.GetText(page))
-                .ToList();
+            if (document.NumberOfPages > MaximumPageCount)
+                throw new InvalidDataException("PDF statements cannot exceed 500 pages.");
+
+            var extractedPages = new List<string>(document.NumberOfPages);
+            var extractedCharacterCount = 0;
+            foreach (var page in document.GetPages())
+            {
+                var pageText = ContentOrderTextExtractor.GetText(page);
+                extractedCharacterCount += pageText.Length;
+                if (extractedCharacterCount > MaximumExtractedCharacters)
+                    throw new InvalidDataException("The PDF contains too much extracted text to process safely.");
+                extractedPages.Add(pageText);
+            }
+
             var extractedText = string.Join(Environment.NewLine, extractedPages);
 
             if (string.IsNullOrWhiteSpace(extractedText))

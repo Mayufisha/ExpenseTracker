@@ -15,8 +15,8 @@
 
             <Border Padding="14">
                 <VerticalStackLayout Spacing="8">
-                    <Label Text="Local testing" FontAttributes="Bold" />
-                    <Label Text="Accounts and saved sessions currently use the Money Manager server running on this computer."
+                    <Label x:Name="BackendTitleLabel" Text="Account security" FontAttributes="Bold" />
+                    <Label x:Name="BackendDescriptionLabel" Text="Checking the configured account service."
                            FontSize="12"
                            Style="{StaticResource MutedLabel}" />
                 </VerticalStackLayout>
@@ -26,7 +26,11 @@
                    Keyboard="Email" />
             <Entry x:Name="PasswordEntry"
                    Placeholder="Password"
+                   MaxLength="128"
                    IsPassword="True" />
+            <Label Text="Use 12-128 characters. Password managers and unique passphrases are recommended."
+                   FontSize="12"
+                   Style="{StaticResource MutedLabel}" />
 
             <HorizontalStackLayout Spacing="10">
                 <Button Text="Sign Up"

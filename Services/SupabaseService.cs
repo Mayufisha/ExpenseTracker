@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using ExpenseTracker.Models;
+using ExpenseTracker.Security;
 
 namespace ExpenseTracker.Services;
 
@@ -91,7 +92,7 @@ public sealed class SupabaseService : ISupabaseService
 
     public async Task SignUpAsync(string email, string password)
     {
-        ValidateCredentials(email, password);
+        ValidateCredentials(email, password, enforceMinimumPasswordLength: true);
         EnsureConfigured();
 
         using var request = CreateRequest(HttpMethod.Post, "/auth/v1/signup", includeAuth: false);
@@ -112,7 +113,7 @@ public sealed class SupabaseService : ISupabaseService
 
     public async Task SignInAsync(string email, string password)
     {
-        ValidateCredentials(email, password);
+        ValidateCredentials(email, password, enforceMinimumPasswordLength: false);
         EnsureConfigured();
 
         using var request = CreateRequest(
@@ -357,17 +358,18 @@ public sealed class SupabaseService : ISupabaseService
         }
     }
 
-    private static void ValidateCredentials(string email, string password)
+    private static void ValidateCredentials(
+        string email,
+        string password,
+        bool enforceMinimumPasswordLength)
     {
-        if (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
+        if (!CredentialPolicy.IsValidEmail(email))
         {
             throw new InvalidOperationException("Enter a valid email.");
         }
 
-        if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
-        {
-            throw new InvalidOperationException("Password must be at least 6 characters.");
-        }
+        var passwordError = CredentialPolicy.GetPasswordError(password, enforceMinimumPasswordLength);
+        if (passwordError != null) throw new InvalidOperationException(passwordError);
     }
 
     private static async Task<string> GetSecureValueAsync(string key)

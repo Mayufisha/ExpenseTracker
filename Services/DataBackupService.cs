@@ -45,6 +45,9 @@ public class DataBackupService : IBackupService
             throw new FileNotFoundException("Backup file was not found.", backupFilePath);
         }
 
+        if (new FileInfo(backupFilePath).Length > DataBackupValidator.MaximumBackupFileSize)
+            throw new InvalidDataException("Backup files cannot exceed 5 MB.");
+
         var json = await File.ReadAllTextAsync(backupFilePath);
         var backup = JsonSerializer.Deserialize<DataBackup>(json, SerializerOptions)
             ?? throw new InvalidDataException("Backup file format is invalid.");
@@ -135,6 +138,8 @@ public class DataBackupService : IBackupService
 
     public async Task<BackupImportResult> ImportBackupAsync(DataBackup backup, bool clearExistingData = true)
     {
+        DataBackupValidator.Validate(backup);
+
         if (clearExistingData)
         {
             await ClearAllDataAsync();
@@ -325,6 +330,7 @@ public class DataBackupService : IBackupService
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         WriteIndented = true,
-        PropertyNameCaseInsensitive = true
+        PropertyNameCaseInsensitive = true,
+        MaxDepth = 32
     };
 }

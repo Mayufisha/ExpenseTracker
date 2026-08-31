@@ -11,6 +11,11 @@ public partial class AuthPage : ContentPage
         InitializeComponent();
         _accountService = accountService;
         EmailEntry.Text = _accountService.Session.Email;
+        var isHosted = _accountService.BackendName.Equals("Supabase", StringComparison.OrdinalIgnoreCase);
+        BackendTitleLabel.Text = isHosted ? "Secure hosted account" : "Local development account";
+        BackendDescriptionLabel.Text = isHosted
+            ? "Authentication and cross-device backups use the configured Supabase project."
+            : "This loopback server is for development only and is not an internet deployment.";
     }
 
     private async void OnSignUpClicked(object sender, EventArgs e)

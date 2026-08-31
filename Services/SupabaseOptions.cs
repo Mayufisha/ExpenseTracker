@@ -6,6 +6,9 @@ public sealed class SupabaseOptions
 {
     public string ProjectUrl { get; init; } = string.Empty;
     public string PublishableKey { get; init; } = string.Empty;
+    public bool IsConfigured => Uri.TryCreate(ProjectUrl, UriKind.Absolute, out var uri)
+        && uri.Scheme == Uri.UriSchemeHttps
+        && !string.IsNullOrWhiteSpace(PublishableKey);
 
     public static SupabaseOptions FromAssembly()
     {

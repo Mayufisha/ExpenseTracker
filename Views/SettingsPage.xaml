@@ -53,7 +53,7 @@
             <VerticalStackLayout Spacing="8">
                 <Label Text="Account &amp; Backup"
                        FontAttributes="Bold" />
-                <Label Text="Local testing stores account backups on the development server."
+                <Label x:Name="BackendDescriptionLabel" Text="Checking the configured account service."
                        Style="{StaticResource MutedLabel}" />
                 <Label x:Name="ProjectStatusLabel"
                        FontSize="12"

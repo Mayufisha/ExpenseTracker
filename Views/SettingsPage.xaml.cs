@@ -251,6 +251,9 @@ public partial class SettingsPage : ContentPage
     {
         var session = _accountService.Session;
         ProjectStatusLabel.Text = _accountService.BackendName;
+        BackendDescriptionLabel.Text = _accountService.BackendName.Equals("Supabase", StringComparison.OrdinalIgnoreCase)
+            ? "Encrypted network sessions and per-user cloud backups use the configured Supabase project."
+            : "Local development accounts are bound to this computer and are not for internet deployment.";
         AccountStatusLabel.Text = session.IsSignedIn
             ? $"Signed in as {session.Email}"
             : "Not signed in";

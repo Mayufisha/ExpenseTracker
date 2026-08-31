@@ -48,13 +48,9 @@ public class StatementImportService : IStatementImportService
         Directory.CreateDirectory(accountDirectory);
         var storedPath = Path.Combine(accountDirectory, $"{Guid.NewGuid():N}{extension}");
 
-        await using (var destination = File.Create(storedPath))
-        {
-            await sourceStream.CopyToAsync(destination);
-        }
-
         try
         {
+            await StatementFileValidator.CopyAndValidateAsync(sourceStream, storedPath, extension);
             var fileHash = await CalculateHashAsync(storedPath);
             if (await _accountService.HasStatementAsync(account.Id, fileHash))
                 throw new InvalidOperationException("This statement is already attached to the account.");
