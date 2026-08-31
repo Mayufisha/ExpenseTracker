@@ -31,7 +31,13 @@ Deno.serve(async (req) => {
       provider_event_id: event.id,
       event_type: event.type,
       payment_request_id: requestId,
-      payload: event,
+      payload: {
+        id: event.id,
+        type: event.type,
+        created: event.created,
+        livemode: event.livemode,
+        payment_request_id: requestId,
+      },
     })
     if (eventError?.code === '23505') return jsonResponse({ received: true, duplicate: true })
     if (eventError) throw eventError
@@ -59,7 +65,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ received: true })
   } catch (error) {
-    return errorResponse(error, 400)
+    return errorResponse(error, 400, 'Invalid webhook payload.')
   }
 })
 

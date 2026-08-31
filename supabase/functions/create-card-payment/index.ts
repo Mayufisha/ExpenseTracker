@@ -1,4 +1,11 @@
-import { corsHeaders, errorResponse, jsonResponse, withQueryValue } from '../_shared/http.ts'
+import {
+  corsHeaders,
+  errorResponse,
+  jsonResponse,
+  readJson,
+  requireHttpsUrl,
+  withQueryValue,
+} from '../_shared/http.ts'
 import { createAdminClient, requireUser } from '../_shared/supabase.ts'
 import { createStripeClient } from '../_shared/stripe.ts'
 
@@ -20,7 +27,7 @@ Deno.serve(async (req) => {
 
   try {
     const user = await requireUser(req)
-    const input = await req.json() as CardRequest
+    const input = await readJson<CardRequest>(req)
     validate(input)
 
     const admin = createAdminClient()
@@ -91,9 +98,8 @@ Deno.serve(async (req) => {
     }
 
     try {
-      const successUrl = Deno.env.get('PAYMENT_SUCCESS_URL')
-      const cancelUrl = Deno.env.get('PAYMENT_CANCEL_URL')
-      if (!successUrl || !cancelUrl) throw new Error('Payment return URLs are not configured.')
+      const successUrl = requireHttpsUrl(Deno.env.get('PAYMENT_SUCCESS_URL'), 'PAYMENT_SUCCESS_URL')
+      const cancelUrl = requireHttpsUrl(Deno.env.get('PAYMENT_CANCEL_URL'), 'PAYMENT_CANCEL_URL')
 
       const session = await stripe.checkout.sessions.create({
         mode: 'payment',
@@ -140,7 +146,7 @@ Deno.serve(async (req) => {
     } catch (error) {
       await admin.from('payment_requests').update({
         status: 'failed',
-        failure_message: error instanceof Error ? error.message : 'Checkout creation failed.',
+        failure_message: 'The payment provider could not create checkout.',
         updated_at: new Date().toISOString(),
       }).eq('id', requestId)
       throw error
@@ -153,8 +159,12 @@ Deno.serve(async (req) => {
 function validate(input: CardRequest): void {
   if (!input.splitSyncId?.trim() || !input.participantSyncId?.trim())
     throw Object.assign(new Error('Split and participant identifiers are required.'), { status: 400 })
+  if (input.splitSyncId.length > 64 || input.participantSyncId.length > 64)
+    throw Object.assign(new Error('Split or participant identifier is too long.'), { status: 400 })
   if (!input.participantName?.trim())
     throw Object.assign(new Error('Participant name is required.'), { status: 400 })
+  if (input.participantName.length > 200)
+    throw Object.assign(new Error('Participant name is too long.'), { status: 400 })
   if (!Number.isFinite(input.amount) || input.amount <= 0 || input.amount > 10000)
     throw Object.assign(new Error('Payment amount must be between 0.01 and 10,000.'), { status: 400 })
   if (!/^[a-z]{3}$/i.test(input.currency))
@@ -163,4 +173,6 @@ function validate(input: CardRequest): void {
     throw Object.assign(new Error('A valid idempotency key is required.'), { status: 400 })
   if (!input.description?.trim())
     throw Object.assign(new Error('Payment description is required.'), { status: 400 })
+  if (input.description.length > 200)
+    throw Object.assign(new Error('Payment description is too long.'), { status: 400 })
 }

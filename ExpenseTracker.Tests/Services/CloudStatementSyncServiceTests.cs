@@ -93,7 +93,6 @@ public class CloudStatementSyncServiceTests
         }
 
         public Task InitializeAsync() => Task.CompletedTask;
-        public void SetConfiguration(string projectUrl, string publishableKey) { }
         public Task SignUpAsync(string email, string password) => Task.CompletedTask;
         public Task SignInAsync(string email, string password) => Task.CompletedTask;
         public Task SignOutAsync() => Task.CompletedTask;

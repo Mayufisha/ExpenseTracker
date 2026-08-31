@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using ExpenseTracker.Models;
 using ExpenseTracker.Security;
 
@@ -9,8 +10,6 @@ namespace ExpenseTracker.Services;
 
 public sealed class SupabaseService : ISupabaseService
 {
-    private const string ProjectUrlKey = "Supabase.ProjectUrl";
-    private const string PublishableKeyKey = "Supabase.PublishableKey";
     private const string EmailKey = "Supabase.Email";
     private const string AccessTokenKey = "Supabase.AccessToken";
     private const string RefreshTokenKey = "Supabase.RefreshToken";
@@ -25,8 +24,8 @@ public sealed class SupabaseService : ISupabaseService
     public SupabaseService(SupabaseOptions options, HttpClient httpClient)
     {
         _httpClient = httpClient;
-        Session.ProjectUrl = Preferences.Get(ProjectUrlKey, options.ProjectUrl);
-        Session.PublishableKey = Preferences.Get(PublishableKeyKey, options.PublishableKey);
+        Session.ProjectUrl = options.ProjectUrl.Trim().TrimEnd('/');
+        Session.PublishableKey = options.PublishableKey.Trim();
         Session.Email = Preferences.Get(EmailKey, string.Empty);
     }
 
@@ -58,35 +57,6 @@ public sealed class SupabaseService : ISupabaseService
         catch
         {
             await ClearSessionAsync();
-        }
-    }
-
-    public void SetConfiguration(string projectUrl, string publishableKey)
-    {
-        var normalizedUrl = projectUrl?.Trim().TrimEnd('/') ?? string.Empty;
-        if (!Uri.TryCreate(normalizedUrl, UriKind.Absolute, out var uri)
-            || uri.Scheme != Uri.UriSchemeHttps)
-        {
-            throw new InvalidOperationException("Enter a valid HTTPS Supabase project URL.");
-        }
-
-        if (string.IsNullOrWhiteSpace(publishableKey))
-        {
-            throw new InvalidOperationException("Enter the Supabase publishable or anon key.");
-        }
-
-        var configurationChanged =
-            !Session.ProjectUrl.Equals(normalizedUrl, StringComparison.OrdinalIgnoreCase)
-            || !Session.PublishableKey.Equals(publishableKey.Trim(), StringComparison.Ordinal);
-
-        Session.ProjectUrl = normalizedUrl;
-        Session.PublishableKey = publishableKey.Trim();
-        Preferences.Set(ProjectUrlKey, Session.ProjectUrl);
-        Preferences.Set(PublishableKeyKey, Session.PublishableKey);
-
-        if (configurationChanged && Session.IsSignedIn)
-        {
-            ClearSessionAsync().GetAwaiter().GetResult();
         }
     }
 
@@ -182,11 +152,10 @@ public sealed class SupabaseService : ISupabaseService
     public async Task<string> UploadStatementAsync(Stream content, string objectPath, string contentType)
     {
         await EnsureActiveSessionAsync();
+        if (!Regex.IsMatch(objectPath, @"^[0-9a-f]{64}\.(csv|pdf)$", RegexOptions.IgnoreCase))
+            throw new InvalidOperationException("Invalid statement storage path.");
 
-        var normalizedPath = string.Join('/', objectPath
-            .Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries)
-            .Select(Uri.EscapeDataString));
-        var storagePath = $"{Session.UserId}/{normalizedPath}";
+        var storagePath = $"{Session.UserId}/{objectPath.ToLowerInvariant()}";
         using var request = CreateRequest(
             HttpMethod.Post,
             $"/storage/v1/object/statements/{storagePath}",
@@ -336,6 +305,9 @@ public sealed class SupabaseService : ISupabaseService
 
     private static string GetErrorMessage(string json, HttpResponseMessage response)
     {
+        if ((int)response.StatusCode >= 500)
+            return $"The hosted service is unavailable ({(int)response.StatusCode}).";
+
         try
         {
             var error = JsonSerializer.Deserialize<SupabaseError>(json, JsonOptions);

@@ -21,11 +21,12 @@ Money Manager never asks for or stores an online-banking password.
 
 ## Database
 
-Apply both migrations in timestamp order:
+Apply all migrations in timestamp order:
 
 ```text
 supabase/migrations/202608040001_initial_schema.sql
 supabase/migrations/202608290001_payment_platform.sql
+supabase/migrations/202608300001_security_hardening.sql
 ```
 
 The payment migration creates:
@@ -42,7 +43,8 @@ Only Edge Functions using Supabase secret credentials can mutate payment tables.
 1. Create or use a Stripe test account and enable Connect test mode.
 2. Copy [`supabase/functions/.env.example`](../supabase/functions/.env.example) to an ignored local environment file.
 3. Fill in test secrets and HTTPS return pages.
-4. Store the secrets in Supabase.
+4. Set `ALLOWED_ORIGIN` to the exact trusted HTTPS browser origin. Do not use `*`.
+5. Store the secrets in Supabase.
 
 ```powershell
 supabase secrets set --env-file supabase/functions/.env

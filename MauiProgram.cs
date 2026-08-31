@@ -62,20 +62,20 @@ public static class MauiProgram
         else
             builder.Services.AddSingleton<IAccountService, LocalServerAccountService>();
 
-        builder.Services.AddSingleton<DashboardViewModel>();
-        builder.Services.AddSingleton<TransactionsViewModel>();
-        builder.Services.AddSingleton<GoalsViewModel>();
-        builder.Services.AddSingleton<ScheduleViewModel>();
-        builder.Services.AddSingleton<FinancialAccountsViewModel>();
-        builder.Services.AddSingleton<SplitsViewModel>();
+        builder.Services.AddTransient<DashboardViewModel>();
+        builder.Services.AddTransient<TransactionsViewModel>();
+        builder.Services.AddTransient<GoalsViewModel>();
+        builder.Services.AddTransient<ScheduleViewModel>();
+        builder.Services.AddTransient<FinancialAccountsViewModel>();
+        builder.Services.AddTransient<SplitsViewModel>();
 
-        builder.Services.AddSingleton<DashboardPage>();
-        builder.Services.AddSingleton<TransactionsPage>();
-        builder.Services.AddSingleton<GoalsPage>();
-        builder.Services.AddSingleton<SchedulePage>();
-        builder.Services.AddSingleton<FinancialAccountsPage>();
-        builder.Services.AddSingleton<SplitsPage>();
-        builder.Services.AddSingleton<SettingsPage>();
+        builder.Services.AddTransient<DashboardPage>();
+        builder.Services.AddTransient<TransactionsPage>();
+        builder.Services.AddTransient<GoalsPage>();
+        builder.Services.AddTransient<SchedulePage>();
+        builder.Services.AddTransient<FinancialAccountsPage>();
+        builder.Services.AddTransient<SplitsPage>();
+        builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<AddEditTransactionPage>();
         builder.Services.AddTransient<CreateSplitPage>();
 

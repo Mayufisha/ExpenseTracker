@@ -1,4 +1,4 @@
-import { corsHeaders, errorResponse, jsonResponse } from '../_shared/http.ts'
+import { corsHeaders, errorResponse, jsonResponse, requireHttpsUrl } from '../_shared/http.ts'
 import { createAdminClient, requireUser } from '../_shared/supabase.ts'
 import { createStripeClient } from '../_shared/stripe.ts'
 
@@ -46,9 +46,8 @@ Deno.serve(async (req) => {
     })
     if (saveError) throw saveError
 
-    const refreshUrl = Deno.env.get('CONNECT_REFRESH_URL')
-    const returnUrl = Deno.env.get('CONNECT_RETURN_URL')
-    if (!refreshUrl || !returnUrl) throw new Error('Connect return URLs are not configured.')
+    const refreshUrl = requireHttpsUrl(Deno.env.get('CONNECT_REFRESH_URL'), 'CONNECT_REFRESH_URL')
+    const returnUrl = requireHttpsUrl(Deno.env.get('CONNECT_RETURN_URL'), 'CONNECT_RETURN_URL')
 
     const link = await stripe.accountLinks.create({
       account: account.id,

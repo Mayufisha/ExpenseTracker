@@ -4,13 +4,17 @@ namespace ExpenseTracker.Services;
 
 public sealed class PaymentRequestService : IPaymentRequestService
 {
-    private const string ETransferRecipientKey = "Payments.ETransferRecipient";
-    private const string OnlineBankingUrlKey = "Payments.OnlineBankingUrl";
     private const string InteracInformationUrl =
         "https://www.interac.ca/en/payments/personal/send-receive-money-with-interac-e-transfer/";
+    private readonly IUserDataContext _userContext;
 
-    public string ETransferRecipient => Preferences.Get(ETransferRecipientKey, string.Empty);
-    public string OnlineBankingUrl => Preferences.Get(OnlineBankingUrlKey, string.Empty);
+    public PaymentRequestService(IUserDataContext userContext)
+    {
+        _userContext = userContext;
+    }
+
+    public string ETransferRecipient => Preferences.Get(GetUserKey("ETransferRecipient"), string.Empty);
+    public string OnlineBankingUrl => Preferences.Get(GetUserKey("OnlineBankingUrl"), string.Empty);
 
     public void SavePreferences(string eTransferRecipient, string onlineBankingUrl)
     {
@@ -18,13 +22,17 @@ public sealed class PaymentRequestService : IPaymentRequestService
         var bankUrl = onlineBankingUrl?.Trim() ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(bankUrl)
             && (!Uri.TryCreate(bankUrl, UriKind.Absolute, out var uri)
-                || uri.Scheme != Uri.UriSchemeHttps))
+                || uri.Scheme != Uri.UriSchemeHttps
+                || !string.IsNullOrEmpty(uri.UserInfo)))
         {
             throw new InvalidOperationException("Online banking must be a valid HTTPS URL.");
         }
 
-        Preferences.Set(ETransferRecipientKey, recipient);
-        Preferences.Set(OnlineBankingUrlKey, bankUrl);
+        if (recipient.Length > 320)
+            throw new InvalidOperationException("The e-Transfer recipient is too long.");
+
+        Preferences.Set(GetUserKey("ETransferRecipient"), recipient);
+        Preferences.Set(GetUserKey("OnlineBankingUrl"), bankUrl);
     }
 
     public Task ShareCardRequestAsync(
@@ -66,4 +74,7 @@ public sealed class PaymentRequestService : IPaymentRequestService
             : new Uri(InteracInformationUrl);
         await Browser.Default.OpenAsync(url, BrowserLaunchMode.SystemPreferred);
     }
+
+    private string GetUserKey(string settingName) =>
+        $"Payments.{_userContext.RequireCurrentUserId()}.{settingName}";
 }

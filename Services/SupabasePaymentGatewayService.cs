@@ -17,7 +17,8 @@ public sealed class SupabasePaymentGatewayService : IPaymentGatewayService
             "create-connect-account",
             new { });
         if (!Uri.TryCreate(result.OnboardingUrl, UriKind.Absolute, out var onboardingUri)
-            || onboardingUri.Scheme != Uri.UriSchemeHttps)
+            || onboardingUri.Scheme != Uri.UriSchemeHttps
+            || !onboardingUri.Host.Equals("connect.stripe.com", StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException("The payment provider returned an invalid onboarding URL.");
         }
@@ -40,11 +41,12 @@ public sealed class SupabasePaymentGatewayService : IPaymentGatewayService
             if (existing is { Status: "pending" or "processing" }
                 && !string.IsNullOrWhiteSpace(existing.CheckoutUrl))
             {
+                ValidateStripeCheckoutUrl(existing.CheckoutUrl);
                 return existing;
             }
         }
 
-        return await _supabase.InvokeFunctionAsync<PaymentRequestResult>(
+        var result = await _supabase.InvokeFunctionAsync<PaymentRequestResult>(
             "create-card-payment",
             new
             {
@@ -56,6 +58,8 @@ public sealed class SupabasePaymentGatewayService : IPaymentGatewayService
                 idempotencyKey = Guid.NewGuid(),
                 description = $"{split.Title} - {participant.Name}'s share"
             });
+        ValidateStripeCheckoutUrl(result.CheckoutUrl);
+        return result;
     }
 
     public async Task<PaymentRequestResult> CreateInteracRequestAsync(
@@ -86,4 +90,12 @@ public sealed class SupabasePaymentGatewayService : IPaymentGatewayService
 
     public Task<PaymentRequestResult?> GetRequestAsync(string paymentRequestId) =>
         _supabase.GetPaymentRequestAsync(paymentRequestId);
+
+    private static void ValidateStripeCheckoutUrl(string checkoutUrl)
+    {
+        if (!Uri.TryCreate(checkoutUrl, UriKind.Absolute, out var checkoutUri)
+            || checkoutUri.Scheme != Uri.UriSchemeHttps
+            || !checkoutUri.Host.Equals("checkout.stripe.com", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("The payment provider returned an invalid Checkout URL.");
+    }
 }

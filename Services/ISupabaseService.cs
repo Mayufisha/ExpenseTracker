@@ -6,7 +6,6 @@ public interface ISupabaseService
 {
     AccountSession Session { get; }
     Task InitializeAsync();
-    void SetConfiguration(string projectUrl, string publishableKey);
     Task SignUpAsync(string email, string password);
     Task SignInAsync(string email, string password);
     Task SignOutAsync();

@@ -1,17 +1,18 @@
 # Money Manager (.NET MAUI)
 
-Money Manager is a cross-platform personal finance app built with .NET MAUI, SQLite, PostgreSQL, Supabase, and MVVM. It combines expense tracking, financial accounts, statement imports, goals, schedules, and shared-expense management. The current development build uses a local ASP.NET Core server for accounts, saved sessions, and account backups. Supabase remains the planned hosted backend for cross-device production use.
+Money Manager is a cross-platform personal finance app built with .NET MAUI, SQLite, PostgreSQL, Supabase, and MVVM. It combines expense tracking, financial accounts, statement imports, goals, schedules, and shared-expense management. Builds with Supabase configuration use hosted authentication and per-user cross-device backups automatically; unconfigured development builds fall back to the loopback ASP.NET Core test server.
 
 ## Features
 
 ### Authentication and Sync
 
 - Login or signup is required before financial data can be accessed.
-- The app connects to the fixed local development server automatically; users are never asked for backend URLs or API keys.
-- The active local-server session is stored in the platform secure-storage service and validated when the app starts again.
+- Users are never asked for backend URLs or API keys; production configuration is embedded at build time.
+- Hosted builds use Supabase automatically. Unconfigured builds use the fixed loopback development server.
+- Active session tokens are stored with the platform secure-storage service and validated or refreshed when the app starts again.
 - Every SQLite row for transactions, goals, schedules, accounts, statements, and splits is scoped to the authenticated user ID.
 - Users can sign out from Settings.
-- Account data can be uploaded to or downloaded from the signed-in user's local-server backup.
+- Account data can be uploaded to or downloaded from the signed-in user's owner-scoped backup.
 
 ### Dashboard
 
@@ -50,7 +51,7 @@ The Stripe adapter is test-only because Stripe prohibits personal peer-to-peer m
 - Statement sign conventions are inferred from known transfers, deposits, and direction columns; the account setting is only a fallback for ambiguous files.
 - CSV files with separate debit and credit columns are classified automatically without using the amount-sign setting.
 - Previously imported rows are reconciled against their attached statement when the dashboard or Transactions page first loads.
-- Statements are stored in the app's private data directory. Scanned-image PDFs require OCR or a CSV export. Private Supabase Storage upload is retained for the future hosted backend.
+- Statements are limited to 10 MB, validated as CSV/PDF, and stored in the app's private data directory. Scanned-image PDFs require OCR or a CSV export.
 - Duplicate statement files are detected using a SHA-256 file hash.
 - When the hosted backend is enabled, failed statement uploads remain pending locally for retry.
 
@@ -65,6 +66,7 @@ The Stripe adapter is test-only because Stripe prohibits personal peer-to-peer m
 - System, Light, and Dark theme preferences apply across all screens.
 - Export or import a JSON backup.
 - Manage sign-in and account backups.
+- Backup imports are limited to 5 MB and validated before existing data is replaced.
 
 ## Statement CSV Format
 
@@ -75,7 +77,7 @@ The importer recognizes common column names used by financial institutions:
 - Amount: `Amount` or `Transaction Amount`
 - Separate amount columns: `Debit`/`Withdrawal`/`Charge` and `Credit`/`Deposit`/`Payment`
 
-For a single `Amount` column, each account stores the institution's sign convention. Bank accounts default to negative expenses; credit cards default to positive expenses. Change the rule in the inline account editor when an institution exports the opposite format.
+For a single `Amount` column, the importer first infers the sign convention from descriptions and direction values. If the file is ambiguous, bank accounts fall back to negative expenses and credit cards to positive expenses; the fallback can be changed in the inline account editor.
 
 ## Architecture
 
@@ -91,7 +93,7 @@ For a single `Amount` column, each account stores the institution's sign convent
 - ASP.NET Core local development server
 - SQLite (`sqlite-net-pcl`)
 - PDF text extraction (`PdfPig`)
-- Supabase Auth, PostgreSQL, Data REST API, and Storage for the future hosted backend
+- Supabase Auth, PostgreSQL, Data REST API, Edge Functions, and private Storage
 - Charts (`Microcharts.Maui`)
 
 ## Data Storage and Privacy
@@ -100,8 +102,8 @@ For a single `Amount` column, each account stores the institution's sign convent
 - User-owned database rows include an indexed `OwnerUserId`; records without an owner from pre-account builds are not shown to any newly authenticated user.
 - Statement files: private application data under `Statements/<user-id>/`
 - Development account backup: one JSON snapshot per authenticated user in the local server store
-- Future cloud backup: one versioned JSONB snapshot per authenticated user in PostgreSQL
-- Future statement storage: private `statements` bucket, scoped by Supabase user ID
+- Hosted cloud backup: one versioned JSONB snapshot per authenticated user in PostgreSQL
+- Hosted statement storage: private `statements` bucket, scoped by Supabase user ID and SHA-256 object name
 - Active development session token: platform `SecureStorage`
 - Institution definitions and imported transaction data are included in backup/cloud sync.
 - Local filesystem paths are never included in cloud backups.
@@ -110,7 +112,9 @@ For a single `Amount` column, each account stores the institution's sign convent
 
 ## Local Development Server
 
-The development server listens on `http://127.0.0.1:5088`. Account records are written to `%LOCALAPPDATA%\MoneyManager\LocalServer\accounts.json`. Passwords are never stored directly: the server stores salted PBKDF2-SHA256 hashes. Session tokens are random, stored as hashes by the server, and expire after 30 days.
+The development server listens only on `http://127.0.0.1:5088`. Account records are written to `%LOCALAPPDATA%\MoneyManager\LocalServer\accounts.json`. New passwords use salted PBKDF2-HMAC-SHA256 with 600,000 iterations, older hashes upgrade after login, random session tokens are stored only as hashes by the server, and sessions expire after 7 days. The API also enforces rate, body, header, and session-count limits.
+
+Do not expose this HTTP development server to a LAN or the internet. It is not the production multi-user backend.
 
 Start the server first:
 
@@ -128,7 +132,7 @@ Create an account from the app. The saved session is restored on later launches 
 
 Set `MONEY_MANAGER_DATA_DIR` before starting the server to override its account-data directory for isolated testing.
 
-## Future Supabase Setup
+## Hosted Supabase Setup
 
 ### 1. Create the project
 
@@ -142,6 +146,7 @@ Apply the migrations in order through the Supabase CLI migration workflow or SQL
 
 1. [`supabase/migrations/202608040001_initial_schema.sql`](supabase/migrations/202608040001_initial_schema.sql)
 2. [`supabase/migrations/202608290001_payment_platform.sql`](supabase/migrations/202608290001_payment_platform.sql)
+3. [`supabase/migrations/202608300001_security_hardening.sql`](supabase/migrations/202608300001_security_hardening.sql)
 
 The migration creates:
 
@@ -172,17 +177,23 @@ dotnet build ExpenseTracker.sln `
   -p:SupabasePublishableKey="sb_publishable_..."
 ```
 
-The older JWT-style `anon` key is also supported. Do not use a secret key or the `service_role` key. The Supabase account service is retained in the codebase but is not the current development registration in `MauiProgram.cs`.
+The older JWT-style `anon` key is also supported. Do not use a secret key or the `service_role` key. When both hosted values are valid, `MauiProgram.cs` selects Supabase authentication, storage, backup, and the hosted payment sandbox automatically.
 
 ## Sync Behavior
 
 - The app remains local-first; normal edits write to SQLite immediately.
-- **Upload Backup** sends the current backup to the signed-in local-server account.
+- **Upload Backup** sends the current backup to the signed-in local-server or Supabase account selected at build time.
 - **Download Backup** replaces the local transactions, accounts, statement metadata, goals, and schedule with that account's latest server backup.
-- When the hosted backend is enabled, the Supabase service can upload statements and persist the same backup model in PostgreSQL.
+- When the hosted backend is enabled, statements upload to private owner-scoped Storage and the backup persists in PostgreSQL under RLS.
 - Split records use stable transaction GUIDs, so relationships survive a cross-device restore.
 - Backup writes are last-write-wins. Upload from the device with the desired current data before downloading a server backup.
-- Under the future hosted backend, raw statement files remain in private Supabase Storage; backups restore metadata rather than device-local file copies.
+- Under the hosted backend, raw statement files remain in private Supabase Storage; backups restore metadata rather than device-local file copies.
+
+## Security
+
+No software is impossible to penetrate. Money Manager now includes defense-in-depth controls for account isolation, sessions, uploads, backups, the loopback API, Supabase RLS/Storage, and payment Functions, but production security also requires correct hosted configuration and ongoing operations.
+
+Read [`docs/SECURITY.md`](docs/SECURITY.md) before deployment. Its release blockers include Supabase email confirmation, CAPTCHA, MFA support and enforcement, SSL/network controls, monitoring, signed Release builds, secret rotation, independent penetration testing, and a decision about application-level encryption for local financial data.
 
 ## Payment Setup
 
