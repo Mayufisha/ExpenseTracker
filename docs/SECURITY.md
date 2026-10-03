@@ -6,6 +6,8 @@ No internet-connected application can be guaranteed impossible to penetrate. Mon
 
 The loopback ASP.NET Core server is for development only. It binds to `127.0.0.1`, uses HTTP, and must never be exposed through port forwarding, a reverse proxy, a tunnel, or a public host. A multi-user or multi-device deployment must use the hosted Supabase configuration.
 
+The signed local-test MSIX is also not a production trust model. Its installer adds a project-generated public certificate to the Windows Local Machine Trusted People store after administrator consent. Distribute that package only to trusted testers, protect the build machine's private key, and remove or rotate the certificate if the key may have been exposed.
+
 ## Implemented Controls
 
 - Login is required before any financial service can obtain a user context.
@@ -36,7 +38,7 @@ Complete every item before allowing real users or sensitive production data:
 5. Enable database SSL enforcement, network restrictions where supported, backups/PITR, log retention, and alerts for anomalous Auth, Storage, Function, and payment activity.
 6. Set `ALLOWED_ORIGIN` to the exact trusted HTTPS web origin. Native MAUI clients do not require wildcard CORS.
 7. Store Function and payment secrets only in Supabase secret storage. Rotate them after staff changes, suspected exposure, and on a documented schedule.
-8. Use signed Release builds, protected CI environments, least-privilege repository access, branch protection, and dependency/security scanning.
+8. Use a trusted production code-signing certificate and the production package path in `docs/DISTRIBUTION.md`; never publish the self-signed local-test package. Protect CI environments, repository access, branches, and signing secrets, and enable dependency/security scanning.
 9. Commission an independent penetration test covering Auth, RLS, Storage, Edge Functions, backup restore, payment webhooks, mobile binaries, and lost-device scenarios. Remediate and retest all significant findings.
 10. Establish vulnerability reporting, incident response, token/key revocation, breach notification, backup recovery, and audit-log review procedures.
 11. Put the hosted API behind provider-supported network controls, rate limits, bot protection, and alerting. Keep any production honeypot in a separate account/project with no route, credential, network trust, or storage shared with Money Manager.

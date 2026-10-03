@@ -20,7 +20,7 @@ The dashboard trend graph can display the latest 3, 6, or 12 months without chan
 ### Dashboard
 
 - Tracks Income, Expenses, Assets, Liabilities, Net Cashflow, and Net Worth.
-- Includes a 6-month net cashflow trend and financial composition charts.
+- Includes selectable 3-, 6-, and 12-month net cashflow trends and financial composition charts.
 
 ### Transactions
 
@@ -126,7 +126,7 @@ For defense in depth on Windows, run the idempotent inbound block rule from an e
 
 Do not expose this HTTP development server to a LAN or the internet. It is not the production multi-user backend.
 
-Start the server first:
+For source development, start the server first:
 
 ```powershell
 dotnet run --project ExpenseTracker.LocalServer/ExpenseTracker.LocalServer.csproj
@@ -141,6 +141,20 @@ dotnet build ExpenseTracker.csproj -t:Run -f net9.0-windows10.0.19041.0
 Create an account from the app. The saved session is restored on later launches while the local server is running. Use **Upload Backup** and **Download Backup** in Settings to test account-scoped backup behavior.
 
 Set `MONEY_MANAGER_DATA_DIR` before starting the server to override its account-data directory for isolated testing.
+
+## Windows Distribution
+
+Build a signed x64 local-test MSIX from the repository root:
+
+```powershell
+.\scripts\Build-LocalTestPackage.ps1
+```
+
+The generated package under `artifacts/local-test/package/` includes a self-contained loopback server and an installer script. Testers do not need the repository, .NET SDK, or a separate server terminal. The installer requests one-time administrator consent to trust the local-test public certificate, then Windows installs the signed package for the current user. Launching the installed app starts the server automatically; a normal app close stops it.
+
+This local package is for personal use and trusted testers. Its server remains device-local and does not provide multi-device sync. A separate `Build-ProductionPackage.ps1` command builds a hosted Supabase MSIX, refuses placeholder configuration and invalid signing inputs, and verifies that the local server is absent. Production still requires a trusted code-signing identity, configured Supabase project, security operations, and independent testing.
+
+See [`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md) for build, installation, CI artifact, and production-release instructions.
 
 ## Hosted Supabase Setup
 
@@ -236,7 +250,7 @@ dotnet build ExpenseTracker.sln
 dotnet test ExpenseTracker.Tests/ExpenseTracker.Tests.csproj
 ```
 
-The local server must be running before signup, login, session restoration, or account backup will work. Supabase configuration is not required for local development.
+When running from source, the local server must be running before signup, login, session restoration, or account backup will work. Installed local-test packages start their bundled server automatically. Supabase configuration is not required for local development or local-test packages.
 
 ## Product Roadmap
 
