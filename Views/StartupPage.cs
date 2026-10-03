@@ -66,7 +66,7 @@ public sealed class StartupPage : ContentPage
             _activityIndicator.IsRunning = false;
             _activityIndicator.IsVisible = false;
             _statusLabel.Text = exception.Message;
-            _retryButton.IsVisible = true;
+            _retryButton.IsVisible = exception is not BackendConfigurationException;
             return;
         }
 

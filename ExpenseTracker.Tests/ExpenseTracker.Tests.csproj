@@ -38,6 +38,10 @@
     <Compile Include="..\\Security\\RequestFirewallPolicy.cs" Link="Source\\Security\\RequestFirewallPolicy.cs" />
     <Compile Include="..\\Services\\CloudStatementSyncService.cs" Link="Source\\Services\\CloudStatementSyncService.cs" />
     <Compile Include="..\\Services\\ICloudStatementSyncService.cs" Link="Source\\Services\\ICloudStatementSyncService.cs" />
+    <Compile Include="..\\Services\\IAccountService.cs" Link="Source\\Services\\IAccountService.cs" />
+    <Compile Include="..\\Services\\IBackendBootstrapper.cs" Link="Source\\Services\\IBackendBootstrapper.cs" />
+    <Compile Include="..\\Services\\BackendConfigurationException.cs" Link="Source\\Services\\BackendConfigurationException.cs" />
+    <Compile Include="..\\Services\\HostedBackendRequiredService.cs" Link="Source\\Services\\HostedBackendRequiredService.cs" />
     <Compile Include="..\\Services\\IExpenseService.cs" Link="Source\\Services\\IExpenseService.cs" />
     <Compile Include="..\\Services\\IFinancialAccountService.cs" Link="Source\\Services\\IFinancialAccountService.cs" />
     <Compile Include="..\\Services\\IStatementImportService.cs" Link="Source\\Services\\IStatementImportService.cs" />

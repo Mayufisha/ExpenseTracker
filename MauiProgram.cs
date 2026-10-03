@@ -64,8 +64,16 @@ public static class MauiProgram
         }
         else
         {
+#if WINDOWS
             builder.Services.AddSingleton<IAccountService, LocalServerAccountService>();
             builder.Services.AddSingleton<IBackendBootstrapper, LocalServerBootstrapper>();
+#else
+            builder.Services.AddSingleton<HostedBackendRequiredService>();
+            builder.Services.AddSingleton<IAccountService>(provider =>
+                provider.GetRequiredService<HostedBackendRequiredService>());
+            builder.Services.AddSingleton<IBackendBootstrapper>(provider =>
+                provider.GetRequiredService<HostedBackendRequiredService>());
+#endif
         }
 
         builder.Services.AddTransient<DashboardViewModel>();
