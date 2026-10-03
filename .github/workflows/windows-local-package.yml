@@ -29,7 +29,7 @@ jobs:
         run: ./scripts/Build-LocalTestPackage.ps1
 
       - name: Upload installer bundle
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MoneyManager-Windows-LocalTest
           path: artifacts/local-test/package
