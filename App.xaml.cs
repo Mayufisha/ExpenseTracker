@@ -6,17 +6,21 @@ namespace ExpenseTracker;
 public partial class App : Application
 {
     private readonly IAccountService _accountService;
+    private readonly IBackendBootstrapper _backendBootstrapper;
 
-    public App(IAccountService accountService)
+    public App(IAccountService accountService, IBackendBootstrapper backendBootstrapper)
     {
         InitializeComponent();
         _accountService = accountService;
+        _backendBootstrapper = backendBootstrapper;
         ApplySavedTheme();
     }
 
     protected override Window CreateWindow(IActivationState? activationState)
     {
-        return new Window(new Views.StartupPage(_accountService));
+        var window = new Window(new Views.StartupPage(_accountService, _backendBootstrapper));
+        window.Destroying += (_, _) => _backendBootstrapper.Stop();
+        return window;
     }
 
     public void NavigateToMainShell()

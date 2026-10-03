@@ -58,9 +58,15 @@ public static class MauiProgram
             Path.Combine(FileSystem.AppDataDirectory, "Statements")));
         builder.Services.AddSingleton<IBackupService, DataBackupService>();
         if (supabaseOptions.IsConfigured)
+        {
             builder.Services.AddSingleton<IAccountService, AccountService>();
+            builder.Services.AddSingleton<IBackendBootstrapper, NoOpBackendBootstrapper>();
+        }
         else
+        {
             builder.Services.AddSingleton<IAccountService, LocalServerAccountService>();
+            builder.Services.AddSingleton<IBackendBootstrapper, LocalServerBootstrapper>();
+        }
 
         builder.Services.AddTransient<DashboardViewModel>();
         builder.Services.AddTransient<TransactionsViewModel>();
