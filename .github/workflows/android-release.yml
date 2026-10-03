@@ -1,0 +1,100 @@
+name: Android Signed Release
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      application_id:
+        description: Production reverse-domain application ID
+        required: true
+        type: string
+      display_version:
+        description: User-visible version such as 1.0.0
+        required: true
+        default: 1.0.0
+        type: string
+      build_number:
+        description: Increasing Google Play version code
+        required: true
+        default: "1"
+        type: string
+
+jobs:
+  package:
+    runs-on: windows-latest
+    environment: mobile-production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Materialize temporary signing files
+        shell: pwsh
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_BASE64) -or
+              [string]::IsNullOrWhiteSpace($env:ANDROID_KEYSTORE_PASSWORD)) {
+            throw 'Android signing secrets are not configured.'
+          }
+          [IO.File]::WriteAllBytes(
+            "$env:RUNNER_TEMP\money-manager.keystore",
+            [Convert]::FromBase64String($env:ANDROID_KEYSTORE_BASE64))
+          Set-Content "$env:RUNNER_TEMP\store-password.txt" $env:ANDROID_KEYSTORE_PASSWORD -NoNewline
+          $keyPassword = if ([string]::IsNullOrWhiteSpace($env:ANDROID_KEY_PASSWORD)) {
+            $env:ANDROID_KEYSTORE_PASSWORD
+          } else {
+            $env:ANDROID_KEY_PASSWORD
+          }
+          Set-Content "$env:RUNNER_TEMP\key-password.txt" $keyPassword -NoNewline
+
+      - name: Build and verify signed APK and AAB
+        shell: pwsh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          APPLICATION_ID: ${{ inputs.application_id }}
+          DISPLAY_VERSION: ${{ inputs.display_version }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          ./scripts/Build-AndroidPackage.ps1 `
+            -SupabaseUrl $env:SUPABASE_URL `
+            -SupabasePublishableKey $env:SUPABASE_PUBLISHABLE_KEY `
+            -ApplicationId $env:APPLICATION_ID `
+            -ApplicationDisplayVersion $env:DISPLAY_VERSION `
+            -ApplicationVersion $env:BUILD_NUMBER `
+            -KeystorePath "$env:RUNNER_TEMP\money-manager.keystore" `
+            -KeyAlias $env:ANDROID_KEY_ALIAS `
+            -StorePasswordFile "$env:RUNNER_TEMP\store-password.txt" `
+            -KeyPasswordFile "$env:RUNNER_TEMP\key-password.txt"
+
+      - name: Upload signed Android packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: MoneyManager-Android-${{ inputs.display_version }}-${{ inputs.build_number }}
+          path: artifacts/android/package
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove temporary signing files
+        if: always()
+        shell: pwsh
+        run: |
+          Remove-Item "$env:RUNNER_TEMP\money-manager.keystore" -Force -ErrorAction SilentlyContinue
+          Remove-Item "$env:RUNNER_TEMP\store-password.txt" -Force -ErrorAction SilentlyContinue
+          Remove-Item "$env:RUNNER_TEMP\key-password.txt" -Force -ErrorAction SilentlyContinue

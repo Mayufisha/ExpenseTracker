@@ -42,6 +42,7 @@
     <Compile Include="..\\Services\\IBackendBootstrapper.cs" Link="Source\\Services\\IBackendBootstrapper.cs" />
     <Compile Include="..\\Services\\BackendConfigurationException.cs" Link="Source\\Services\\BackendConfigurationException.cs" />
     <Compile Include="..\\Services\\HostedBackendRequiredService.cs" Link="Source\\Services\\HostedBackendRequiredService.cs" />
+    <Compile Include="..\\Services\\SupabaseOptions.cs" Link="Source\\Services\\SupabaseOptions.cs" />
     <Compile Include="..\\Services\\IExpenseService.cs" Link="Source\\Services\\IExpenseService.cs" />
     <Compile Include="..\\Services\\IFinancialAccountService.cs" Link="Source\\Services\\IFinancialAccountService.cs" />
     <Compile Include="..\\Services\\IStatementImportService.cs" Link="Source\\Services\\IStatementImportService.cs" />

@@ -6,6 +6,8 @@ param(
     [Parameter(Mandatory)] [string]$Publisher,
     [Parameter(Mandatory)] [string]$PublisherDisplayName,
     [Parameter(Mandatory)] [string]$ApplicationId,
+    [string]$ApplicationDisplayVersion = '1.0.0',
+    [long]$ApplicationVersion = 1,
     [ValidateSet('x64')] [string]$Architecture = 'x64',
     [string]$OutputDirectory = '',
     [switch]$SkipTests
@@ -20,7 +22,9 @@ $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
     -SupabasePublishableKey $SupabasePublishableKey `
     -CertificateThumbprint $CertificateThumbprint `
     -Publisher $Publisher `
-    -ApplicationId $ApplicationId
+    -ApplicationId $ApplicationId `
+    -ApplicationDisplayVersion $ApplicationDisplayVersion `
+    -ApplicationVersion $ApplicationVersion
 
 if ([string]::IsNullOrWhiteSpace($PublisherDisplayName)) {
     throw 'PublisherDisplayName is required.'
@@ -73,6 +77,8 @@ $publishArguments = @(
     "-p:PackageCertificateThumbprint=$CertificateThumbprint",
     "-p:PackageManifest=$manifestPath",
     "-p:ApplicationId=$ApplicationId",
+    "-p:ApplicationDisplayVersion=$ApplicationDisplayVersion",
+    "-p:ApplicationVersion=$ApplicationVersion",
     "-p:SupabaseUrl=$SupabaseUrl",
     "-p:SupabasePublishableKey=$SupabasePublishableKey",
     "-p:AppxPackageDir=$packageDirectory"
@@ -112,6 +118,8 @@ $release = [ordered]@{
     certificateThumbprint = $CertificateThumbprint
     publisher = $Publisher
     applicationId = $ApplicationId
+    displayVersion = $ApplicationDisplayVersion
+    buildNumber = $ApplicationVersion
     supabaseHost = ([Uri]$SupabaseUrl).Host
     createdAtUtc = [DateTimeOffset]::UtcNow.ToString('O')
     localTestOnly = $false

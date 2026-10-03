@@ -1,0 +1,154 @@
+name: iOS Signed Release
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      application_id:
+        description: Production bundle identifier
+        required: true
+        type: string
+      display_version:
+        description: User-visible version such as 1.0.0
+        required: true
+        default: 1.0.0
+        type: string
+      build_number:
+        description: Increasing App Store build number
+        required: true
+        default: "1"
+        type: string
+      upload_to_testflight:
+        description: Upload the verified IPA to App Store Connect
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  package:
+    runs-on: macos-26
+    environment: mobile-production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install MAUI iOS workload
+        run: dotnet workload install maui-ios
+
+      - name: Import distribution certificate and provisioning profile
+        shell: bash
+        env:
+          IOS_CERTIFICATE_P12_BASE64: ${{ secrets.IOS_CERTIFICATE_P12_BASE64 }}
+          IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          set -euo pipefail
+          test -n "$IOS_CERTIFICATE_P12_BASE64"
+          test -n "$IOS_CERTIFICATE_PASSWORD"
+          test -n "$IOS_PROVISIONING_PROFILE_BASE64"
+
+          KEYCHAIN="$RUNNER_TEMP/money-manager.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 32)"
+          CERTIFICATE="$RUNNER_TEMP/money-manager.p12"
+          PROFILE="$RUNNER_TEMP/money-manager.mobileprovision"
+          echo "MONEY_MANAGER_KEYCHAIN=$KEYCHAIN" >> "$GITHUB_ENV"
+
+          printf '%s' "$IOS_CERTIFICATE_P12_BASE64" | base64 -D > "$CERTIFICATE"
+          printf '%s' "$IOS_PROVISIONING_PROFILE_BASE64" | base64 -D > "$PROFILE"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security import "$CERTIFICATE" -P "$IOS_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN"
+
+          security cms -D -i "$PROFILE" > "$RUNNER_TEMP/profile.plist"
+          PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$RUNNER_TEMP/profile.plist")"
+          echo "MONEY_MANAGER_PROFILE_UUID=$PROFILE_UUID" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$PROFILE" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+
+      - name: Build and verify signed IPA
+        shell: pwsh
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          IOS_CODESIGN_KEY: ${{ secrets.IOS_CODESIGN_KEY }}
+          APPLICATION_ID: ${{ inputs.application_id }}
+          DISPLAY_VERSION: ${{ inputs.display_version }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          ./scripts/Build-IosPackage.ps1 `
+            -SupabaseUrl $env:SUPABASE_URL `
+            -SupabasePublishableKey $env:SUPABASE_PUBLISHABLE_KEY `
+            -ApplicationId $env:APPLICATION_ID `
+            -ApplicationDisplayVersion $env:DISPLAY_VERSION `
+            -ApplicationVersion $env:BUILD_NUMBER `
+            -CodesignKey $env:IOS_CODESIGN_KEY `
+            -CodesignProvision $env:MONEY_MANAGER_PROFILE_UUID
+
+      - name: Configure App Store Connect API key
+        if: ${{ inputs.upload_to_testflight }}
+        shell: bash
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY_BASE64: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY_BASE64 }}
+        run: |
+          set -euo pipefail
+          test -n "$APP_STORE_CONNECT_API_KEY_ID"
+          test -n "$APP_STORE_CONNECT_ISSUER_ID"
+          test -n "$APP_STORE_CONNECT_PRIVATE_KEY_BASE64"
+          KEY_DIRECTORY="$HOME/.appstoreconnect/private_keys"
+          mkdir -p "$KEY_DIRECTORY"
+          printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY_BASE64" | base64 -D > "$KEY_DIRECTORY/AuthKey_$APP_STORE_CONNECT_API_KEY_ID.p8"
+
+      - name: Upload to TestFlight
+        if: ${{ inputs.upload_to_testflight }}
+        shell: bash
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          IPA="$(find artifacts/ios/package -name '*.ipa' -print -quit)"
+          test -n "$IPA"
+          xcrun altool --upload-app --type ios --file "$IPA" \
+            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
+
+      - name: Upload signed iOS package
+        uses: actions/upload-artifact@v4
+        with:
+          name: MoneyManager-iOS-${{ inputs.display_version }}-${{ inputs.build_number }}
+          path: artifacts/ios/package
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Remove temporary Apple credentials
+        if: always()
+        shell: bash
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+        run: |
+          set +e
+          if [ -n "${MONEY_MANAGER_KEYCHAIN:-}" ]; then
+            security delete-keychain "$MONEY_MANAGER_KEYCHAIN"
+          fi
+          if [ -n "${MONEY_MANAGER_PROFILE_UUID:-}" ]; then
+            rm -f "$HOME/Library/MobileDevice/Provisioning Profiles/$MONEY_MANAGER_PROFILE_UUID.mobileprovision"
+          fi
+          rm -f "$RUNNER_TEMP/money-manager.p12" "$RUNNER_TEMP/money-manager.mobileprovision" "$RUNNER_TEMP/profile.plist"
+          if [ -n "${APP_STORE_CONNECT_API_KEY_ID:-}" ]; then
+            rm -f "$HOME/.appstoreconnect/private_keys/AuthKey_$APP_STORE_CONNECT_API_KEY_ID.p8"
+          fi

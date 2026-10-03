@@ -4,34 +4,26 @@ param(
     [Parameter(Mandatory)] [string]$SupabasePublishableKey,
     [Parameter(Mandatory)] [string]$CertificateThumbprint,
     [Parameter(Mandatory)] [string]$Publisher,
-    [Parameter(Mandatory)] [string]$ApplicationId
+    [Parameter(Mandatory)] [string]$ApplicationId,
+    [string]$ApplicationDisplayVersion = '1.0.0',
+    [long]$ApplicationVersion = 1
 )
 
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-$uri = $null
-if (-not [Uri]::TryCreate($SupabaseUrl, [UriKind]::Absolute, [ref]$uri) `
-    -or $uri.Scheme -ne 'https' `
-    -or -not [string]::IsNullOrEmpty($uri.UserInfo) `
-    -or $uri.AbsolutePath -ne '/' `
-    -or -not [string]::IsNullOrEmpty($uri.Query) `
-    -or -not [string]::IsNullOrEmpty($uri.Fragment)) {
-    throw 'SupabaseUrl must be a credential-free HTTPS origin without a path, query, or fragment.'
+& (Join-Path $PSScriptRoot 'Test-HostedRelease.ps1') `
+    -SupabaseUrl $SupabaseUrl `
+    -SupabasePublishableKey $SupabasePublishableKey `
+    -ApplicationId $ApplicationId `
+    -ApplicationDisplayVersion $ApplicationDisplayVersion `
+    -ApplicationVersion $ApplicationVersion
+
+if ($Publisher -match '(?i)(Local Test|User Name|Example|Placeholder)') {
+    throw 'Production Publisher must not contain a placeholder or local-test identity.'
 }
-if ([string]::IsNullOrWhiteSpace($SupabasePublishableKey) `
-    -or $SupabasePublishableKey.Length -gt 4096 `
-    -or $SupabasePublishableKey -notmatch '^[A-Za-z0-9._-]+$' `
-    -or $SupabasePublishableKey -match '(service_role|secret)') {
-    throw 'Provide a Supabase publishable or legacy anon key, never a secret/service-role key.'
-}
-if ($Publisher -match '(Local Test|User Name|Example|Placeholder)' `
-    -or $ApplicationId -match '(companyname|localtest|example|placeholder)') {
-    throw 'Production Publisher and ApplicationId values must not contain placeholder or local-test identities.'
-}
-if ($ApplicationId.Length -gt 50 `
-    -or $ApplicationId -notmatch '^[A-Za-z][A-Za-z0-9]*(\.[A-Za-z0-9][A-Za-z0-9-]*)+$') {
-    throw 'ApplicationId must be a reverse-domain identifier of at most 50 characters.'
+if ($ApplicationId.Length -gt 50) {
+    throw 'The Windows ApplicationId must be at most 50 characters.'
 }
 if ($CertificateThumbprint -notmatch '^[A-Fa-f0-9]{40,64}$') {
     throw 'CertificateThumbprint must contain only 40-64 hexadecimal characters.'
