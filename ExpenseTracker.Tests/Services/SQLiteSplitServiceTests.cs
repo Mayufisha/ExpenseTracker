@@ -7,7 +7,6 @@ public class SQLiteSplitServiceTests
 {
     static SQLiteSplitServiceTests()
     {
-        SQLitePCL.Batteries_V2.Init();
     }
 
     [Fact]

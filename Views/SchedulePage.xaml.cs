@@ -66,7 +66,7 @@ public partial class SchedulePage : ContentPage
             _editingItem,
             note,
             amount,
-            ScheduleDatePicker.Date.Date,
+            ScheduleDatePicker.Date?.Date ?? DateTime.Today,
             ScheduleTypePicker.SelectedIndex == 1,
             frequency);
         ScheduleStatusLabel.Text = $"Saved {note}.";

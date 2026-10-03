@@ -51,7 +51,9 @@ public partial class GoalsPage : ContentPage
             name,
             target,
             saved,
-            GoalDeadlineSwitch.IsToggled ? GoalDeadlinePicker.Date.Date : null);
+            GoalDeadlineSwitch.IsToggled
+                ? (GoalDeadlinePicker.Date?.Date ?? DateTime.Today.AddMonths(1))
+                : null);
         GoalStatusLabel.Text = $"Saved {name}.";
         HideEditor();
     }

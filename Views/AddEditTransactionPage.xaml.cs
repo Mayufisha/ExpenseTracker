@@ -104,7 +104,7 @@ public partial class AddEditTransactionPage : ContentPage
             return;
         }
 
-        var date = DatePicker.Date;
+        var date = DatePicker.Date ?? DateTime.Today;
 
         if (_editing == null)
         {

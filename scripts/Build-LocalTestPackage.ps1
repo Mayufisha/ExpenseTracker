@@ -74,7 +74,7 @@ if ($null -eq $certificate) {
 $certificatePath = Join-Path $packageOutput 'MoneyManager-LocalTest.cer'
 Export-Certificate -Cert $certificate -FilePath $certificatePath -Force | Out-Null
 
-$framework = 'net9.0-windows10.0.19041.0'
+$framework = 'net10.0-windows10.0.19041.0'
 $packageDirectory = $packageOutput + [IO.Path]::DirectorySeparatorChar
 & dotnet publish (Join-Path $root 'ExpenseTracker.csproj') `
     --configuration Release `

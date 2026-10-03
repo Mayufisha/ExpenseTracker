@@ -60,7 +60,7 @@ if (-not $SkipTests) {
     if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
 }
 
-$framework = 'net9.0-windows10.0.19041.0'
+$framework = 'net10.0-windows10.0.19041.0'
 $packageDirectory = $packageOutput + [IO.Path]::DirectorySeparatorChar
 $publishArguments = @(
     'publish',

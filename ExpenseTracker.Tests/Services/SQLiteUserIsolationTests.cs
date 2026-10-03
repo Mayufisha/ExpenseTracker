@@ -7,7 +7,6 @@ public class SQLiteUserIsolationTests
 {
     static SQLiteUserIsolationTests()
     {
-        SQLitePCL.Batteries_V2.Init();
     }
 
     [Fact]

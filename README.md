@@ -93,7 +93,7 @@ For a single `Amount` column, the importer first infers the sign convention from
 
 ## Tech Stack
 
-- .NET 9 MAUI
+- .NET 10 MAUI
 - ASP.NET Core local development server
 - SQLite (`sqlite-net-pcl`)
 - PDF text extraction (`PdfPig`)
@@ -135,7 +135,7 @@ dotnet run --project ExpenseTracker.LocalServer/ExpenseTracker.LocalServer.cspro
 In a second terminal, start the Windows app:
 
 ```powershell
-dotnet build ExpenseTracker.csproj -t:Run -f net9.0-windows10.0.19041.0
+dotnet build ExpenseTracker.csproj -t:Run -f net10.0-windows10.0.19041.0
 ```
 
 Create an account from the app. The saved session is restored on later launches while the local server is running. Use **Upload Backup** and **Download Backup** in Settings to test account-scoped backup behavior.
@@ -233,7 +233,7 @@ Payment infrastructure is optional. The app's expense tracking, statements, manu
 
 ### Prerequisites
 
-- .NET 9 SDK
+- .NET 10 SDK
 - MAUI workload
 - Visual Studio 2022+ with MAUI support
 
