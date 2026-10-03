@@ -90,6 +90,13 @@
 		<MauiXaml Remove="ExpenseTracker.Tests\**\*.xaml" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(BundledLocalServerPath)' != '' and Exists('$(BundledLocalServerPath)')">
+		<Content Include="$(BundledLocalServerPath)\**\*"
+		         Link="LocalServer\%(RecursiveDir)%(Filename)%(Extension)"
+		         CopyToOutputDirectory="PreserveNewest"
+		         CopyToPublishDirectory="PreserveNewest" />
+	</ItemGroup>
+
 	<ItemGroup>
 	  <MauiXaml Update="Views\AuthPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>

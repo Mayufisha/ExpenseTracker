@@ -1,0 +1,37 @@
+name: Windows Local-Test Package
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Install MAUI Windows workload
+        run: dotnet workload install maui-windows
+
+      - name: Build signed local-test MSIX
+        shell: pwsh
+        run: ./scripts/Build-LocalTestPackage.ps1
+
+      - name: Upload installer bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: MoneyManager-Windows-LocalTest
+          path: artifacts/local-test/package
+          if-no-files-found: error
+          retention-days: 14

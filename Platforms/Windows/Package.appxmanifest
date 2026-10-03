@@ -6,13 +6,13 @@
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap rescap">
 
-  <Identity Name="maui-package-name-placeholder" Publisher="CN=User Name" Version="0.0.0.0" />
+  <Identity Name="maui-package-name-placeholder" Publisher="CN=Money Manager Local Test" Version="0.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="24991DC1-FB18-4F61-B9A9-456940BB5FF4" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>$placeholder$</DisplayName>
-    <PublisherDisplayName>User Name</PublisherDisplayName>
+    <PublisherDisplayName>Money Manager Local Test</PublisherDisplayName>
     <Logo>$placeholder$.png</Logo>
   </Properties>
 
