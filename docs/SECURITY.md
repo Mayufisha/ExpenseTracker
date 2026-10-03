@@ -20,6 +20,8 @@ The signed local-test MSIX is also not a production trust model. Its installer a
 - Statement uploads are limited to 10 MB, validated against their declared CSV/PDF type, stored under generated names, and bounded during PDF extraction.
 - Backup imports are limited to 5 MB and validated completely before existing data is cleared.
 - Android app-data backup and cleartext traffic are disabled.
+- Android and iOS builds without Supabase configuration fail closed instead of attempting the Windows loopback backend.
+- The iOS privacy manifest declares the UserDefaults reason used by MAUI Preferences and secure session handling remains in platform SecureStorage.
 - Payment contact and online-banking preferences are scoped to the signed-in user, and page/view-model instances are recreated after account switching.
 - The development API uses a default-deny request firewall for known routes: loopback and Host checks, forwarding-header rejection, method/content-type/body/query constraints, traversal checks, request/header limits, rate limiting, no-store security headers, bounded sessions, hashed bearer tokens, and generic server errors.
 - Common scanner paths are decoys that never access account data. Probes, rejected authentication, rate-limit triggers, and unknown routes write privacy-minimized, size-bounded local audit events.
@@ -38,7 +40,7 @@ Complete every item before allowing real users or sensitive production data:
 5. Enable database SSL enforcement, network restrictions where supported, backups/PITR, log retention, and alerts for anomalous Auth, Storage, Function, and payment activity.
 6. Set `ALLOWED_ORIGIN` to the exact trusted HTTPS web origin. Native MAUI clients do not require wildcard CORS.
 7. Store Function and payment secrets only in Supabase secret storage. Rotate them after staff changes, suspected exposure, and on a documented schedule.
-8. Use a trusted production code-signing certificate and the production package path in `docs/DISTRIBUTION.md`; never publish the self-signed local-test package. Protect CI environments, repository access, branches, and signing secrets, and enable dependency/security scanning.
+8. Use trusted platform signing identities and the production package paths in `docs/DISTRIBUTION.md`; never publish the self-signed Windows local-test package or a mobile build signed with a disposable key. Protect CI environments, repository access, branches, Android upload keys, Apple certificates, provisioning profiles, and App Store Connect credentials, and enable dependency/security scanning.
 9. Commission an independent penetration test covering Auth, RLS, Storage, Edge Functions, backup restore, payment webhooks, mobile binaries, and lost-device scenarios. Remediate and retest all significant findings.
 10. Establish vulnerability reporting, incident response, token/key revocation, breach notification, backup recovery, and audit-log review procedures.
 11. Put the hosted API behind provider-supported network controls, rate limits, bot protection, and alerting. Keep any production honeypot in a separate account/project with no route, credential, network trust, or storage shared with Money Manager.

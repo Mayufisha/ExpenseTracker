@@ -1,6 +1,6 @@
 # Money Manager (.NET MAUI)
 
-Money Manager is a cross-platform personal finance app built with .NET MAUI, SQLite, PostgreSQL, Supabase, and MVVM. It combines expense tracking, financial accounts, statement imports, goals, schedules, and shared-expense management. Builds with Supabase configuration use hosted authentication and per-user cross-device backups automatically; unconfigured development builds fall back to the loopback ASP.NET Core test server.
+Money Manager is a cross-platform personal finance app built with .NET MAUI, SQLite, PostgreSQL, Supabase, and MVVM. It combines expense tracking, financial accounts, statement imports, goals, schedules, and shared-expense management. Builds with Supabase configuration use hosted authentication and per-user cross-device backups automatically. Only Windows development builds may use the loopback ASP.NET Core test server; unconfigured mobile builds fail closed and direct the user to install an official hosted build.
 
 Dashboard income, expense, cash-flow totals, and transaction rows are scoped to the selected month. Net worth is a separate current-balance snapshot and never sums statement turnover.
 The dashboard trend graph can display the latest 3, 6, or 12 months without changing the selected month's headline totals.
@@ -11,7 +11,7 @@ The dashboard trend graph can display the latest 3, 6, or 12 months without chan
 
 - Login or signup is required before financial data can be accessed.
 - Users are never asked for backend URLs or API keys; production configuration is embedded at build time.
-- Hosted builds use Supabase automatically. Unconfigured builds use the fixed loopback development server.
+- Hosted builds use Supabase automatically. Unconfigured Windows development builds use the fixed loopback server; Android and iOS require hosted configuration.
 - Active session tokens are stored with the platform secure-storage service and validated or refreshed when the app starts again.
 - Every SQLite row for transactions, goals, schedules, accounts, statements, and splits is scoped to the authenticated user ID.
 - Users can sign out from Settings.
@@ -155,6 +155,12 @@ The generated package under `artifacts/local-test/package/` includes a self-cont
 This local package is for personal use and trusted testers. Its server remains device-local and does not provide multi-device sync. A separate `Build-ProductionPackage.ps1` command builds a hosted Supabase MSIX, refuses placeholder configuration and invalid signing inputs, and verifies that the local server is absent. Production still requires a trusted code-signing identity, configured Supabase project, security operations, and independent testing.
 
 See [`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md) for build, installation, CI artifact, and production-release instructions.
+
+## Mobile Distribution
+
+The repository includes manual GitHub Actions workflows for a signed Android APK/AAB and a signed iOS IPA. Mobile release builds require a non-placeholder production application ID, an increasing build number, signing credentials, and Supabase configuration. Android artifacts are signature-checked in CI. The iOS workflow builds on macOS, verifies the app signature, and can optionally upload the IPA to TestFlight through an App Store Connect API key.
+
+Mobile builds never bundle or launch the Windows local server. See [`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md) for local commands, required GitHub environment secrets, Apple provisioning, Google Play signing, and release limitations.
 
 ## Hosted Supabase Setup
 
