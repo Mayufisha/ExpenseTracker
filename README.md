@@ -1,5 +1,7 @@
 # Money Manager (.NET MAUI)
 
+Repository: [Mayufisha/Money-Manager](https://github.com/Mayufisha/Money-Manager). Local checkout: `Money-Manager`.
+
 Money Manager is a cross-platform personal finance app built with .NET MAUI, SQLite, PostgreSQL, Supabase, and MVVM. It combines expense tracking, financial accounts, statement imports, goals, schedules, and shared-expense management. Builds with Supabase configuration use hosted authentication and per-user cross-device backups automatically. Only Windows development builds may use the loopback ASP.NET Core test server; unconfigured mobile builds fail closed and direct the user to install an official hosted build.
 
 Dashboard income, expense, cash-flow totals, and transaction rows are scoped to the selected month. Net worth is a separate current-balance snapshot and never sums statement turnover.
