@@ -1,0 +1,7 @@
+<Project>
+  <!-- Copy to Supabase.Local.props for local builds. That file is ignored by Git. -->
+  <PropertyGroup>
+    <SupabaseUrl Condition="'$(SupabaseUrl)' == ''">https://your-project.supabase.co</SupabaseUrl>
+    <SupabasePublishableKey Condition="'$(SupabasePublishableKey)' == ''">sb_publishable_replace_me</SupabasePublishableKey>
+  </PropertyGroup>
+</Project>

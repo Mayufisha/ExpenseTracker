@@ -371,3 +371,6 @@ FodyWeavers.xsd
 supabase/.branches/
 supabase/.temp/
 .local-test-data/
+
+# Machine-local hosted backend configuration.
+Supabase.Local.props

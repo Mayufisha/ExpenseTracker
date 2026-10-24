@@ -81,8 +81,8 @@ jobs:
       - name: Build and verify signed IPA
         shell: pwsh
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_URL: ${{ vars.SUPABASE_URL || secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_PUBLISHABLE_KEY }}
           IOS_CODESIGN_KEY: ${{ secrets.IOS_CODESIGN_KEY }}
           APPLICATION_ID: ${{ inputs.application_id }}
           DISPLAY_VERSION: ${{ inputs.display_version }}

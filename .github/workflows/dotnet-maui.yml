@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: ["main", "master"]
 
+env:
+  SUPABASE_URL: ${{ vars.SUPABASE_URL || secrets.SUPABASE_URL }}
+  SUPABASE_PUBLISHABLE_KEY: ${{ vars.SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_PUBLISHABLE_KEY }}
+
 jobs:
   tests:
     runs-on: windows-latest
