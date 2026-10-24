@@ -128,7 +128,7 @@ jobs:
             --apiIssuer "$APP_STORE_CONNECT_ISSUER_ID"
 
       - name: Upload signed iOS package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: MoneyManager-iOS-${{ inputs.display_version }}-${{ inputs.build_number }}
           path: artifacts/ios/package
