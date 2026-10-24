@@ -6,13 +6,13 @@
     xmlns:viewmodels="clr-namespace:ExpenseTracker.ViewModels"
     xmlns:models="clr-namespace:ExpenseTracker.Models"
     x:DataType="viewmodels:SplitsViewModel"
-    Title="Splits">
+    Title="SplitFare">
 
-    <Grid RowDefinitions="Auto,Auto,*" Padding="16,12,16,0" RowSpacing="14">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Padding="16,12,16,0" RowSpacing="14">
         <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
             <VerticalStackLayout Spacing="2">
-                <Label Text="Shared expenses" FontSize="28" FontAttributes="Bold" />
-                <Label Text="Turn any expense into a clear payment plan."
+                <Label Text="SplitFare" FontSize="28" FontAttributes="Bold" />
+                <Label Text="Shared bills and fares, inside Money Manager."
                        Style="{StaticResource MutedLabel}" />
             </VerticalStackLayout>
             <Button Grid.Column="1"
@@ -40,7 +40,12 @@
             </Border>
         </Grid>
 
-        <CollectionView Grid.Row="2"
+        <VerticalStackLayout Grid.Row="2" IsVisible="{Binding HasError}" Spacing="6">
+            <Label Text="{Binding ErrorMessage}" Style="{StaticResource MutedLabel}" />
+            <Button Text="Retry" Clicked="OnRetryClicked" HorizontalOptions="Start" />
+        </VerticalStackLayout>
+
+        <CollectionView Grid.Row="3"
                         ItemsSource="{Binding Splits}"
                         SelectionMode="Single"
                         SelectionChanged="OnSelectionChanged">

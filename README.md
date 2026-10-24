@@ -31,7 +31,9 @@ The dashboard trend graph can display the latest 3, 6, or 12 months without chan
 - Imported transactions show their bank or credit-card source.
 - Swipe an expense transaction from left to right to start a split.
 
-### Shared Expenses and Fares
+### SplitFare — Shared Expenses and Fares
+
+SplitFare is a section inside Money Manager, not a separate app or backend. The first release tracks owner-managed splits; shared invitations and realtime participant collaboration remain future work. Card-test controls are available only in Debug builds.
 
 - Split any expense transaction, including restaurant bills, trip fares, rent, and imported card purchases.
 - Divide equally between the current user and other participants, or enter custom participant shares.

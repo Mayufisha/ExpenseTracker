@@ -9,7 +9,7 @@
         <VerticalStackLayout Padding="20" Spacing="16">
             <VerticalStackLayout Spacing="3">
                 <Label Text="Split a transaction" FontSize="28" FontAttributes="Bold" />
-                <Label Text="Your share stays in your spending. The rest becomes money to collect."
+                <Label Text="Track what each person owes against an existing expense."
                        Style="{StaticResource MutedLabel}" />
             </VerticalStackLayout>
 
@@ -23,7 +23,7 @@
 
             <VerticalStackLayout Spacing="6">
                 <Label Text="Split name" FontAttributes="Bold" />
-                <Entry x:Name="TitleEntry" Placeholder="Dinner, taxi, rent..." />
+                <Entry x:Name="TitleEntry" Placeholder="Dinner, taxi, rent..." MaxLength="200" />
             </VerticalStackLayout>
 
             <VerticalStackLayout Spacing="6">
@@ -38,7 +38,7 @@
 
             <VerticalStackLayout Spacing="6">
                 <Label Text="People" FontAttributes="Bold" />
-                <Editor x:Name="PeopleEditor"
+                <Editor x:Name="PeopleEditor" TextChanged="OnAllocationChanged"
                         AutoSize="TextChanges"
                         MinimumHeightRequest="110"
                         Placeholder="One person per line&#10;Alex | alex@email.com&#10;Morgan" />
@@ -48,7 +48,7 @@
 
             <VerticalStackLayout x:Name="CustomAmountsSection" Spacing="6" IsVisible="False">
                 <Label Text="Custom amounts" FontAttributes="Bold" />
-                <Editor x:Name="AmountsEditor"
+                <Editor x:Name="AmountsEditor" TextChanged="OnAllocationChanged"
                         AutoSize="TextChanges"
                         MinimumHeightRequest="90"
                         Placeholder="One amount per person, in the same order&#10;24.50&#10;18.00" />

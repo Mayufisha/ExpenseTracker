@@ -10,6 +10,14 @@ public sealed class SplitsViewModel : BaseViewModel
 
     public ObservableCollection<ExpenseSplit> Splits { get; } = new();
 
+    private string _errorMessage = string.Empty;
+    public string ErrorMessage
+    {
+        get => _errorMessage;
+        private set { _errorMessage = value; OnPropertyChanged(); OnPropertyChanged(nameof(HasError)); }
+    }
+    public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+
     private decimal _totalOutstanding;
     public decimal TotalOutstanding
     {
@@ -41,16 +49,21 @@ public sealed class SplitsViewModel : BaseViewModel
     {
         if (IsBusy) return;
         IsBusy = true;
+        ErrorMessage = string.Empty;
 
         try
         {
-            Splits.Clear();
             var splits = await _splitService.GetSplitsAsync();
+            Splits.Clear();
             foreach (var split in splits)
                 Splits.Add(split);
 
             TotalOutstanding = splits.Sum(split => split.AmountOutstanding);
             TotalCollected = splits.Sum(split => split.AmountCollected);
+        }
+        catch (Exception)
+        {
+            ErrorMessage = "Could not load SplitFare. Your saved splits have not been changed. Try again.";
         }
         finally
         {

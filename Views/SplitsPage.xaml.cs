@@ -34,6 +34,8 @@ public partial class SplitsPage : ContentPage
         await _viewModel.LoadAsync();
     }
 
+    private async void OnRetryClicked(object sender, EventArgs e) => await _viewModel.LoadAsync();
+
     private Task OpenCreatePageAsync(Transaction? transaction = null)
     {
         var page = new CreateSplitPage(_expenseService, _splitService, transaction);

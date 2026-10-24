@@ -41,7 +41,7 @@
                     <SwipeView>
                         <SwipeView.LeftItems>
                             <SwipeItems Mode="Reveal">
-                                <SwipeItem Text="Split"
+                                <SwipeItem Text="SplitFare"
                                            BackgroundColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}"
                                            Invoked="OnSplitSwipeInvoked" />
                             </SwipeItems>

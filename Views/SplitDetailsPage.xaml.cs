@@ -5,6 +5,7 @@ namespace ExpenseTracker.Views;
 
 public partial class SplitDetailsPage : ContentPage
 {
+    private bool _updating;
     private readonly ExpenseSplit _split;
     private readonly ISplitService _splitService;
     private readonly IPaymentRequestService _paymentRequestService;
@@ -28,10 +29,27 @@ public partial class SplitDetailsPage : ContentPage
     {
         if (sender is not Button { CommandParameter: SplitParticipant participant }) return;
 
-        participant.IsPaid = !participant.IsPaid;
-        participant.PaidAt = participant.IsPaid ? DateTime.UtcNow : null;
-        await _splitService.UpdateParticipantAsync(participant);
-        RefreshBindings();
+        if (_updating) return;
+        _updating = true;
+        var wasPaid = participant.IsPaid;
+        var previousPaidAt = participant.PaidAt;
+        try
+        {
+            participant.IsPaid = !wasPaid;
+            participant.PaidAt = participant.IsPaid ? DateTime.UtcNow : null;
+            await _splitService.UpdateParticipantAsync(participant);
+        }
+        catch (Exception)
+        {
+            participant.IsPaid = wasPaid;
+            participant.PaidAt = previousPaidAt;
+            await DisplayAlertAsync("SplitFare", "The settlement could not be saved. Please try again.", "OK");
+        }
+        finally
+        {
+            _updating = false;
+            RefreshBindings();
+        }
     }
 
     private async void OnCardRequestClicked(object sender, EventArgs e)
@@ -52,7 +70,7 @@ public partial class SplitDetailsPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Card Payment Request", ex.Message, "OK");
+            await DisplayAlertAsync("Card Payment Request", ex.Message, "OK");
         }
     }
 
@@ -68,14 +86,14 @@ public partial class SplitDetailsPage : ContentPage
             participant.LastPaymentRequestAt = DateTime.UtcNow;
             await _splitService.UpdateParticipantAsync(participant);
             await _paymentRequestService.OpenInteracHandoffAsync(_split, participant);
-            await DisplayAlert(
+            await DisplayAlertAsync(
                 "Interac Request Money",
                 "The request details were copied. Complete the Request Money action in your participating bank app, then return here.",
                 "OK");
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Interac Request", ex.Message, "OK");
+            await DisplayAlertAsync("Interac Request", ex.Message, "OK");
         }
     }
 
@@ -105,28 +123,38 @@ public partial class SplitDetailsPage : ContentPage
             }
 
             RefreshBindings();
-            await DisplayAlert(
+            await DisplayAlertAsync(
                 "Payment Status",
                 paidCount > 0 ? $"Confirmed {paidCount} new card payment(s)." : "Payment status is up to date.",
                 "OK");
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Payment Status", ex.Message, "OK");
+            await DisplayAlertAsync("Payment Status", ex.Message, "OK");
         }
     }
 
     private async void OnDeleteClicked(object sender, EventArgs e)
     {
-        var confirmed = await DisplayAlert(
+        var confirmed = await DisplayAlertAsync(
             "Delete Split",
             $"Delete the split for {_split.Title}? The original transaction will remain.",
             "Delete",
             "Cancel");
         if (!confirmed) return;
 
-        await _splitService.DeleteSplitAsync(_split.SyncId);
-        await Navigation.PopAsync();
+        if (_updating) return;
+        _updating = true;
+        try
+        {
+            await _splitService.DeleteSplitAsync(_split.SyncId);
+            await Navigation.PopAsync();
+        }
+        catch (Exception)
+        {
+            await DisplayAlertAsync("SplitFare", "The split could not be deleted. Please try again.", "OK");
+        }
+        finally { _updating = false; }
     }
 
     private void RefreshBindings()

@@ -76,6 +76,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\ViewModels\SplitsViewModel.cs" Link="Source\ViewModels\SplitsViewModel.cs" />
     <Using Include="Xunit" />
   </ItemGroup>
 

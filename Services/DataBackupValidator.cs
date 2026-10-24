@@ -82,8 +82,13 @@ public static class DataBackupValidator
             EnsureLength(item.Frequency, 50, "scheduled frequency");
         }
 
+        var splitIds = new HashSet<string>(StringComparer.Ordinal);
+        var splitTransactionIds = new HashSet<string>(StringComparer.Ordinal);
+        var participantIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (var split in backup.ExpenseSplits)
         {
+            if (!splitIds.Add(split.SyncId) || !splitTransactionIds.Add(split.TransactionSyncId))
+                throw new InvalidDataException("The backup contains duplicate split or transaction identifiers.");
             EnsureIdentifier(split.SyncId, "split identifier");
             EnsureIdentifier(split.TransactionSyncId, "split transaction identifier");
             EnsureRequiredLength(split.Title, 200, "split title");
@@ -93,15 +98,25 @@ public static class DataBackupValidator
             EnsureLength(split.SplitMethod, 50, "split method");
             EnsureCollection(split.Participants, MaximumParticipantsPerSplit, "split participants");
 
+            if (split.TotalAmount <= 0 || decimal.Round(split.TotalAmount, 2) != split.TotalAmount
+                || split.Participants.Count == 0)
+                throw new InvalidDataException("The backup contains an invalid split total or no participants.");
+            var participantNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var participant in split.Participants)
             {
+                if (!participantIds.Add(participant.SyncId) || !participantNames.Add(participant.Name?.Trim() ?? string.Empty))
+                    throw new InvalidDataException("The backup contains duplicate participant identifiers or names.");
+                if (participant.AmountOwed <= 0 || decimal.Round(participant.AmountOwed, 2) != participant.AmountOwed)
+                    throw new InvalidDataException("The backup contains an invalid participant share.");
                 EnsureIdentifier(participant.SyncId, "participant identifier");
-                EnsureRequiredLength(participant.Name, 200, "participant name");
+                EnsureRequiredLength(participant.Name ?? string.Empty, 200, "participant name");
                 EnsureLength(participant.Contact, 320, "participant contact");
                 EnsureAmount(participant.AmountOwed, "participant amount");
                 EnsureLength(participant.PaymentProvider, 100, "payment provider");
                 EnsureLength(participant.ExternalPaymentId, 200, "external payment identifier");
             }
+            if (split.Participants.Sum(participant => participant.AmountOwed) > split.TotalAmount)
+                throw new InvalidDataException("The backup contains shares above the split total.");
         }
     }
 

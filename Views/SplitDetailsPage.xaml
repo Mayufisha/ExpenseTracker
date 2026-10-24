@@ -4,8 +4,9 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:models="clr-namespace:ExpenseTracker.Models"
+    xmlns:services="clr-namespace:ExpenseTracker.Services"
     x:DataType="models:ExpenseSplit"
-    Title="Split details">
+    Title="SplitFare details">
 
     <Grid RowDefinitions="Auto,*" Padding="16" RowSpacing="14">
         <Border Padding="16" StrokeShape="RoundRectangle 18"
@@ -23,7 +24,7 @@
                 <Grid ColumnDefinitions="*,Auto">
                     <Label Text="{Binding UserShare, StringFormat='Your share: ${0:F2}'}"
                            Style="{StaticResource MutedLabel}" />
-                    <Button Grid.Column="1" Text="Refresh payments"
+                    <Button Grid.Column="1" Text="Refresh payments" IsVisible="{x:Static services:ReleaseFeatures.TestPaymentsEnabled}"
                             Style="{StaticResource TextButton}"
                             Clicked="OnRefreshPaymentsClicked" />
                 </Grid>
@@ -47,7 +48,7 @@
                                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryDark}}" />
                             <Grid Grid.Row="2" Grid.ColumnSpan="2"
                                   ColumnDefinitions="*,*,Auto" ColumnSpacing="6">
-                                <Button Text="Card test"
+                                <Button Text="Card test" IsVisible="{x:Static services:ReleaseFeatures.TestPaymentsEnabled}"
                                         CommandParameter="{Binding .}"
                                         Clicked="OnCardRequestClicked" />
                                 <Button Grid.Column="1" Text="e-Transfer"

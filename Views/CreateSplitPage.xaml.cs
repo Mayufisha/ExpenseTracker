@@ -31,21 +31,29 @@ public partial class CreateSplitPage : ContentPage
         if (_loaded) return;
         _loaded = true;
 
-        var existingTransactionIds = (await _splitService.GetSplitsAsync())
-            .Select(split => split.TransactionSyncId)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var transactions = (await _expenseService.GetTransactionsAsync())
-            .Where(transaction => transaction.ParsedType == TransactionType.Expense)
-            .Where(transaction => !existingTransactionIds.Contains(transaction.SyncId)
-                                  || transaction.SyncId == _preselectedTransaction?.SyncId)
-            .OrderByDescending(transaction => transaction.Date)
-            .ToList();
-
-        TransactionPicker.ItemsSource = transactions;
-        if (_preselectedTransaction != null)
+        try
         {
-            TransactionPicker.SelectedItem = transactions.FirstOrDefault(transaction =>
-                transaction.SyncId == _preselectedTransaction.SyncId);
+            var existingTransactionIds = (await _splitService.GetSplitsAsync())
+                .Select(split => split.TransactionSyncId)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var transactions = (await _expenseService.GetTransactionsAsync())
+                .Where(transaction => transaction.ParsedType == TransactionType.Expense)
+                .Where(transaction => !existingTransactionIds.Contains(transaction.SyncId)
+                                      || transaction.SyncId == _preselectedTransaction?.SyncId)
+                .OrderByDescending(transaction => transaction.Date)
+                .ToList();
+
+            TransactionPicker.ItemsSource = transactions;
+            if (_preselectedTransaction != null)
+            {
+                TransactionPicker.SelectedItem = transactions.FirstOrDefault(transaction =>
+                    transaction.SyncId == _preselectedTransaction.SyncId);
+            }
+        }
+        catch (Exception)
+        {
+            _loaded = false;
+            await DisplayAlertAsync("SplitFare", "Could not load expense transactions. Close this page and try again.", "OK");
         }
     }
 
@@ -63,6 +71,8 @@ public partial class CreateSplitPage : ContentPage
         UpdatePreview();
     }
 
+    private void OnAllocationChanged(object sender, TextChangedEventArgs e) => UpdatePreview();
+
     private void UpdatePreview()
     {
         if (TransactionPicker.SelectedItem is not Transaction transaction)
@@ -71,12 +81,23 @@ public partial class CreateSplitPage : ContentPage
             return;
         }
 
-        PreviewLabel.Text = $"Transaction total: ${transaction.Amount:F2}. " +
-                            "Add people, then create the split to calculate your share.";
+        try
+        {
+            var people = ParsePeople(PeopleEditor.Text);
+            var amounts = MethodPicker.SelectedItem?.ToString() == "Custom"
+                ? ParseAmounts(AmountsEditor.Text, people.Count)
+                : SplitAllocationCalculator.CalculateEqualShares(transaction.Amount, people.Count).ToList();
+            if (amounts.Any(amount => amount <= 0 || decimal.Round(amount, 2) != amount)
+                || amounts.Sum() > transaction.Amount)
+                throw new InvalidOperationException("Enter positive shares in cents that do not exceed the expense.");
+            PreviewLabel.Text = $"Total: CAD {transaction.Amount:F2} · Your share: CAD {transaction.Amount - amounts.Sum():F2} · To collect: CAD {amounts.Sum():F2}";
+        }
+        catch (InvalidOperationException ex) { PreviewLabel.Text = ex.Message; }
     }
 
     private async void OnSaveClicked(object sender, EventArgs e)
     {
+        if (!SaveButton.IsEnabled) return;
         try
         {
             SaveButton.IsEnabled = false;
@@ -112,7 +133,7 @@ public partial class CreateSplitPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Cannot Create Split", ex.Message, "OK");
+            await DisplayAlertAsync("Cannot Create Split", ex.Message, "OK");
         }
         finally
         {
